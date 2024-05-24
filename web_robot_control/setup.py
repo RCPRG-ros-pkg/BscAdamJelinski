@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = "web_interface"
+package_name = "web_robot_control"
 
 setup(
     name=package_name,
@@ -18,6 +18,6 @@ setup(
     license="Apache-2.0",
     tests_require=["pytest"],
     entry_points={
-        "console_scripts": ["server = web_interface.server:main"],
+        "console_scripts": ["server = web_robot_control.server:main"],
     },
 )
