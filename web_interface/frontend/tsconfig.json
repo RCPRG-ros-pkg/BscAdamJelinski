@@ -24,7 +24,13 @@
         "isolatedModules": true,
         "skipLibCheck": true
     },
-    "include": ["./src/typed-router.d.ts"],
+    "include": [
+        "src/**/*.ts",
+        "src/**/*.d.ts",
+        "src/**/*.tsx",
+        "src/**/*.vue",
+        "styles.d.ts"
+    ],
     "exclude": ["dist", "node_modules", "cypress"],
     "references": [{ "path": "./tsconfig.node.json" }]
 }
