@@ -3,6 +3,7 @@
         height="24"
         app
         class="text-caption"
+        color="primary"
     >
         <span>Test footer</span>
     </v-footer>

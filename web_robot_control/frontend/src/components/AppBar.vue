@@ -1,5 +1,8 @@
 <template>
-    <v-app-bar :elevation="2">
+    <v-app-bar
+        :elevation="2"
+        color="primary"
+    >
         <template v-slot:prepend>
             <v-app-bar-nav-icon></v-app-bar-nav-icon>
         </template>

@@ -9,11 +9,22 @@ import '@mdi/font/css/materialdesignicons.css'
 import 'vuetify/styles'
 
 // Composables
-import { createVuetify } from 'vuetify'
+import { createVuetify, type ThemeDefinition } from 'vuetify'
+import colors from 'vuetify/util/colors'
 
-// https://vuetifyjs.com/en/introduction/why-vuetify/#feature-guides
+const dark: ThemeDefinition = {
+    dark: true,
+    colors: {
+        primary: colors.cyan.base,
+        secondary: colors.pink.base,
+    },
+}
+
 export default createVuetify({
     theme: {
         defaultTheme: 'dark',
+        themes: {
+            dark,
+        },
     },
 })
