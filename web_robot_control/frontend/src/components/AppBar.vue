@@ -1,16 +1,23 @@
 <template>
     <v-app-bar
         :elevation="2"
-        color="primary"
+        color="trinary"
     >
         <template v-slot:prepend>
-            <v-app-bar-nav-icon></v-app-bar-nav-icon>
+            <v-app-bar-nav-icon color="primary"></v-app-bar-nav-icon>
         </template>
 
-        <v-app-bar-title>Application Bar</v-app-bar-title>
+        <ProjectLogo />
+        <v-app-bar-title style="margin-inline-start: 0px"></v-app-bar-title>
+
+        <template v-slot:append>
+            <v-app-bar-nav-icon color="primary"></v-app-bar-nav-icon>
+        </template>
     </v-app-bar>
 </template>
 
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import ProjectLogo from '@/assets/ProjectLogo.vue'
+</script>
 
 <style scoped lang="sass"></style>

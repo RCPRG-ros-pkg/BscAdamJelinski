@@ -15,8 +15,10 @@ import colors from 'vuetify/util/colors'
 const dark: ThemeDefinition = {
     dark: true,
     colors: {
-        primary: colors.cyan.base,
+        primary: colors.teal.lighten1,
+        'on-primary': '#000000',
         secondary: colors.pink.base,
+        trinary: colors.blueGrey.darken4,
     },
 }
 
