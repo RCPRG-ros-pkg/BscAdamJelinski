@@ -17,7 +17,7 @@
 </template>
 
 <script setup lang="ts">
-import ProjectLogo from '@/assets/ProjectLogo.vue'
+import ProjectLogo from '@/ui/assets/ProjectLogo.vue'
 </script>
 
 <style scoped lang="sass"></style>
