@@ -6,6 +6,7 @@ import Layouts from 'vite-plugin-vue-layouts'
 import Vue from '@vitejs/plugin-vue'
 import VueRouter from 'unplugin-vue-router/vite'
 import Vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
+import basicSsl from '@vitejs/plugin-basic-ssl'
 
 // Utilities
 import { defineConfig } from 'vite'
@@ -54,6 +55,7 @@ export default defineConfig({
                 ],
             },
         }),
+        basicSsl(),
     ],
     define: { 'process.env': {} },
     resolve: {
@@ -64,5 +66,6 @@ export default defineConfig({
     },
     server: {
         port: 3000,
+        host: '0.0.0.0',
     },
 })

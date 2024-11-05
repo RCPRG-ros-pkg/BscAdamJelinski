@@ -44,6 +44,7 @@ onBeforeUnmount(() => {
                 color="primary"
                 :absolute="false"
                 height="30"
+                style="position: relative"
             >
                 <v-icon
                     color="trinary"
@@ -70,7 +71,6 @@ onBeforeUnmount(() => {
     height: inherit;
 }
 .background {
-    overflow: scroll;
     width: inherit;
     flex-grow: 1;
 }
@@ -78,6 +78,5 @@ onBeforeUnmount(() => {
     height: calc(100% - 30px);
     width: inherit;
     display: flex;
-    margin-top: 30px;
 }
 </style>
