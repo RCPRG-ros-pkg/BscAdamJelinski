@@ -5,6 +5,7 @@ import { VRButton } from 'three/addons/webxr/VRButton.js'
 import { XRControllerModelFactory } from 'three/addons/webxr/XRControllerModelFactory.js'
 import { XRHandModelFactory } from 'three/examples/jsm/Addons.js'
 import { VRNavigation } from './VRNavigation'
+import { urdfLoader } from './urdfLoader'
 
 export class RenderController {
     scene: THREE.Scene
@@ -60,6 +61,7 @@ export class RenderController {
 
         this.initTestLight()
         this.loadTestModels()
+        this.loadModels()
         this.VRNavigation = new VRNavigation(this)
 
         this.renderer.setAnimationLoop(() => {
@@ -117,34 +119,18 @@ export class RenderController {
         this.scene.add(dirLight)
     }
 
+    loadModels = async () => {
+        const robot = await urdfLoader('/models/urdf/tiago.urdf')
+        robot.rotateX(-Math.PI / 2)
+        robot.position.set(0, 0.05, 0)
+        this.scene.add(robot)
+    }
+
     loadTestModels = () => {
         new GLTFLoader().load(
             '/models/marsyard_2022.glb',
             (gltf) => {
                 this.map = gltf.scene
-
-                this.scene.add(gltf.scene)
-            },
-            undefined,
-            (error) => {
-                console.error(error)
-            }
-        )
-
-        new GLTFLoader().load(
-            '/models/sirius2.glb',
-            (gltf) => {
-                gltf.scene.rotateX(-Math.PI / 2)
-                gltf.scene.traverse((child) => {
-                    if (child instanceof THREE.Mesh) {
-                        if (child.material) child.material.metalness = 0
-                        child.rotateX(Math.PI / 2)
-                        child.rotateY(Math.PI)
-                    }
-                })
-
-                this.robot = gltf.scene
-                this.robot.position.set(0, 0.25, 0)
 
                 this.scene.add(gltf.scene)
             },

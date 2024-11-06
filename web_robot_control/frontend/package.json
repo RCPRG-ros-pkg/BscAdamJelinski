@@ -12,6 +12,7 @@
         "core-js": "^3.34.0",
         "roboto-fontface": "*",
         "three": "^0.170.0",
+        "urdf-loader": "^0.12.3",
         "vue": "^3.4.21",
         "vuetify": "^3.5.8"
     },

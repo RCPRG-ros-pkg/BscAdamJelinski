@@ -20,6 +20,9 @@ importers:
       three:
         specifier: ^0.170.0
         version: 0.170.0
+      urdf-loader:
+        specifier: ^0.12.3
+        version: 0.12.3(three@0.170.0)
       vue:
         specifier: ^3.4.21
         version: 3.4.27(typescript@5.4.5)
@@ -1648,6 +1651,11 @@ packages:
   upath@2.0.1:
     resolution: {integrity: sha512-1uEe95xksV1O0CYKXo8vQvN1JEbtJp7lb7C5U9HMsIp6IVwntkH/oNUzyVNQSd4S1sYk2FpSSW44FqMc8qee5w==}
     engines: {node: '>=4'}
+
+  urdf-loader@0.12.3:
+    resolution: {integrity: sha512-aDPCqCdQdDJT01reJfI0IE9qY69+QcWYs9dIj2foQkMUVoysLDisWYQMZGepkVy4xSdfcoNPEpGjZz8DhWOlIg==}
+    peerDependencies:
+      three: '>=0.152.0'
 
   uri-js@4.4.1:
     resolution: {integrity: sha512-7rKUyy33Q1yc98pQ1DAmLtwX109F7TIfWlW1Ydo8Wl1ii1SeHieeh0HHfPeL2fMXK6z0s8ecKs9frCuLJvndBg==}
@@ -3498,6 +3506,10 @@ snapshots:
       webpack-virtual-modules: 0.6.1
 
   upath@2.0.1: {}
+
+  urdf-loader@0.12.3(three@0.170.0):
+    dependencies:
+      three: 0.170.0
 
   uri-js@4.4.1:
     dependencies:
