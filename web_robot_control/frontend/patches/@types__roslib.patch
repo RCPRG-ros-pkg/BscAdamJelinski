@@ -1,0 +1,13 @@
+diff --git a/index.d.ts b/index.d.ts
+index 6099ab48edd5e57dddcfc5629e698da63bddc8d7..1c5ba3bde8c72febdf32d6e02d1bf9eccff5fd5b 100644
+--- a/index.d.ts
++++ b/index.d.ts
+@@ -51,6 +51,8 @@ declare namespace ROSLIB {
+ 
+         readonly transportOptions: RTCDataChannelInit | {};
+ 
++        readonly socket: WebSocket | null;
++
+         on(eventName: string, callback: (event: any) => void): this;
+ 
+         on(eventName: "connection" | "close" | "error", callback: (event: Event) => void): this;
