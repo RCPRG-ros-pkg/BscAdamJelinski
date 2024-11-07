@@ -122,7 +122,8 @@ export class RenderController {
     loadModels = async () => {
         const robot = await urdfLoader(
             '/models/urdf/tiago.urdf',
-            '/joint_states'
+            '/joint_states',
+            this
         )
         robot.rotateX(-Math.PI / 2)
         robot.position.set(0, 0.05, 0)
