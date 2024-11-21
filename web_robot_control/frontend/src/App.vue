@@ -1,7 +1,15 @@
 <script lang="ts" setup>
 import { useRosStore } from './stores/ros'
 
-useRosStore().connect()
+const rosStore = useRosStore()
+
+onMounted(() => {
+    rosStore.connect()
+})
+
+onBeforeUnmount(() => {
+    rosStore.disconnect()
+})
 </script>
 <template>
     <v-app>

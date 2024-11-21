@@ -6,6 +6,8 @@ import { XRControllerModelFactory } from 'three/addons/webxr/XRControllerModelFa
 import { XRHandModelFactory } from 'three/examples/jsm/Addons.js'
 import { VRNavigation } from './VRNavigation'
 import { urdfLoader } from './urdfLoader'
+import { ROS2TFClient } from 'roslib'
+import { useRosStore } from '@/stores/ros'
 
 export class RenderController {
     scene: THREE.Scene
@@ -24,6 +26,8 @@ export class RenderController {
     frameCallbacks: Array<() => void> = []
 
     VRNavigation: VRNavigation
+
+    tf2Client: ROS2TFClient | undefined
 
     constructor(canvas: HTMLCanvasElement, width: number, height: number) {
         // ===== Scene =====
@@ -63,6 +67,7 @@ export class RenderController {
         this.loadTestModels()
         this.loadModels()
         this.VRNavigation = new VRNavigation(this)
+        this.initTF2()
 
         this.renderer.setAnimationLoop(() => {
             this.render()
@@ -119,14 +124,23 @@ export class RenderController {
         this.scene.add(dirLight)
     }
 
+    initTF2 = () => {
+        const rosStore = useRosStore()
+        this.tf2Client = new ROS2TFClient({
+            ros: rosStore.ros!!,
+            fixedFrame: 'map',
+            angularThres: 0.01,
+            transThres: 0.01,
+        })
+    }
+
     loadModels = async () => {
         const robot = await urdfLoader(
             '/models/urdf/tiago.urdf',
             '/joint_states',
+            'base_link',
             this
         )
-        robot.rotateX(-Math.PI / 2)
-        robot.position.set(0, 0.05, 0)
         this.scene.add(robot)
     }
 

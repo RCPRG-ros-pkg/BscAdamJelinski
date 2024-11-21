@@ -1,5 +1,5 @@
 import { useRosStore } from '@/stores/ros'
-import ROSLIB from 'roslib'
+import { Topic, Service } from 'roslib'
 import { computed, watch } from 'vue'
 
 export const callService = (
@@ -14,14 +14,14 @@ export const callService = (
             reject(new Error('Not connected to ros'))
             return
         }
-        const service = new ROSLIB.Service({
+        const service = new Service({
             ros: rosStore.ros,
             name: serviceName,
             serviceType,
         })
 
         service.callService(
-            new ROSLIB.ServiceRequest(request),
+            request,
             (response) => {
                 resolve(response)
             },
@@ -58,8 +58,8 @@ export const onRosDisconnected = (callback: () => void) => {
 export const useTopic = (topicName: string, messageType: string) => {
     const rosStore = useRosStore()
     const topic = computed(() => {
-        if (rosStore.ros) {
-            return new ROSLIB.Topic({
+        if (rosStore.ros && rosStore.connected) {
+            return new Topic({
                 ros: rosStore.ros,
                 name: topicName,
                 messageType,

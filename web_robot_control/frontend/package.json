@@ -11,7 +11,7 @@
         "@mdi/font": "6.2.95",
         "core-js": "^3.34.0",
         "roboto-fontface": "*",
-        "roslib": "^1.4.1",
+        "roslib": "git@github.com:RobotWebTools/roslibjs.git#develop",
         "three": "^0.170.0",
         "urdf-loader": "^0.12.3",
         "vue": "^3.4.21",

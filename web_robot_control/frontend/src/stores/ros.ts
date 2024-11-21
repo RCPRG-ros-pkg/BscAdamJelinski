@@ -102,11 +102,16 @@ export const useRosStore = defineStore('ros', () => {
             reconnectTimeout.value = setTimeout(() => connect(), 1000)
     }
 
+    function disconnect() {
+        ros.value?.close()
+    }
+
     return {
         ros,
         url,
         connected,
         connect,
+        disconnect,
         topics,
         services,
     }

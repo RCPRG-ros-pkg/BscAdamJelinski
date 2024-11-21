@@ -1,14 +1,15 @@
 import { useTopicSubscriber } from '@/core/roslibExtensions'
-import { LoadingManager, MathUtils } from 'three'
+import { LoadingManager, MathUtils, Quaternion, Group } from 'three'
 import URDFLoader, { URDFRobot } from 'urdf-loader'
 import { RenderController } from './RenderController'
 
 export const urdfLoader = async (
     path: string,
     jointTopic?: string,
+    tfBaseFrame?: string,
     controller?: RenderController
 ) => {
-    return await new Promise<URDFRobot>((resolve, reject) => {
+    return await new Promise<Group>((resolve, reject) => {
         const manager = new LoadingManager()
         const loader = new URDFLoader(manager)
 
@@ -27,7 +28,8 @@ export const urdfLoader = async (
                     'sensor_msgs/msg/JointState',
                     (data) => {
                         for (const [i, name] of data.name.entries()) {
-                            latestJointState[name] = data.position[i]
+                            if (name in latestJointState)
+                                latestJointState[name] = data.position[i]
                         }
                     }
                 )
@@ -45,9 +47,29 @@ export const urdfLoader = async (
                         )
                     }
                 })
+
+                controller.tf2Client?.subscribe(tfBaseFrame!, (tf) => {
+                    robot.position.set(
+                        tf.translation.x,
+                        tf.translation.y,
+                        tf.translation.z
+                    )
+                    robot.rotation.setFromQuaternion(
+                        new Quaternion(
+                            tf.rotation.x,
+                            tf.rotation.y,
+                            tf.rotation.z,
+                            tf.rotation.w
+                        )
+                    )
+                })
             }
 
-            resolve(robot)
+            const group = new Group()
+            group.add(robot)
+            group.rotateX(-Math.PI / 2)
+
+            resolve(group)
         })
     })
 }

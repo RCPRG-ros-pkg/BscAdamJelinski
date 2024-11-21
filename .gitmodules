@@ -1,0 +1,3 @@
+[submodule "external/tf2_web_republisher"]
+	path = external/tf2_web_republisher
+	url = https://github.com/pac48/tf2_web_republisher

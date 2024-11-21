@@ -5,6 +5,6 @@
         <param name="params_glob" value="[*]" />
     </node>
     
-    <node pkg="rosbridge_server" exec="rosbridge_websocket" name="rosbridge_websocket">
-    </node>
+    <node pkg="rosbridge_server" exec="rosbridge_websocket" name="rosbridge_websocket"></node>
+    <node pkg="tf2_web_republisher" exec="tf2_web_republisher_node" name="tf2_web_republisher_node"></node>
 </launch>
