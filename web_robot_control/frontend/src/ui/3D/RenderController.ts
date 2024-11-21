@@ -5,10 +5,11 @@ import { VRButton } from 'three/addons/webxr/VRButton.js'
 import { XRControllerModelFactory } from 'three/addons/webxr/XRControllerModelFactory.js'
 import { XRHandModelFactory } from 'three/examples/jsm/Addons.js'
 import { VRNavigation } from './VRNavigation'
-import { urdfLoader } from './urdfLoader'
 import { ROS2TFClient } from 'roslib'
 import { useRosStore } from '@/stores/ros'
 import { robotLoader } from './robotLoader'
+import { nav_msgs_path } from './topicVisualisation/nav_msgs_path'
+import { nav_msgs_occupancygrid } from './topicVisualisation/nav_msgs_occupancygrid'
 
 export class RenderController {
     scene: THREE.Scene
@@ -66,8 +67,9 @@ export class RenderController {
 
         this.initTF2()
         this.initTestLight()
-        this.loadTestModels()
+        //this.loadTestModels()
         this.loadModels()
+        this.loadTopics()
         this.VRNavigation = new VRNavigation(this)
 
         this.renderer.setAnimationLoop(() => {
@@ -161,5 +163,15 @@ export class RenderController {
 
         const axesTest = new THREE.AxesHelper(3)
         this.scene.add(axesTest)
+    }
+
+    loadTopics = () => {
+        const group = new THREE.Group()
+        group.rotateX(-Math.PI / 2)
+
+        group.add(nav_msgs_path('/plan'))
+        group.add(nav_msgs_occupancygrid('/map'))
+
+        this.scene.add(group)
     }
 }
