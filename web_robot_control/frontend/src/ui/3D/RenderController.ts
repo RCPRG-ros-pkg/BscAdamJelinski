@@ -8,6 +8,7 @@ import { VRNavigation } from './VRNavigation'
 import { urdfLoader } from './urdfLoader'
 import { ROS2TFClient } from 'roslib'
 import { useRosStore } from '@/stores/ros'
+import { robotLoader } from './robotLoader'
 
 export class RenderController {
     scene: THREE.Scene
@@ -63,11 +64,11 @@ export class RenderController {
 
         this.controllers = this.initControllers()
 
+        this.initTF2()
         this.initTestLight()
         this.loadTestModels()
         this.loadModels()
         this.VRNavigation = new VRNavigation(this)
-        this.initTF2()
 
         this.renderer.setAnimationLoop(() => {
             this.render()
@@ -135,11 +136,11 @@ export class RenderController {
     }
 
     loadModels = async () => {
-        const robot = await urdfLoader(
+        const robot = await robotLoader(
             '/models/urdf/tiago.urdf',
-            '/joint_states',
+            this,
             'base_link',
-            this
+            ['/joint_states']
         )
         this.scene.add(robot)
     }

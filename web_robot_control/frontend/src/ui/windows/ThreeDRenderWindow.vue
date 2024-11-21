@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import WebGL from 'three/addons/capabilities/WebGL.js'
 
-import { RenderController } from './RenderController'
+import { RenderController } from '../3D/RenderController'
 
 const props = defineProps(['windowDimensions'])
 const width = computed<number>(() => props.windowDimensions.width)

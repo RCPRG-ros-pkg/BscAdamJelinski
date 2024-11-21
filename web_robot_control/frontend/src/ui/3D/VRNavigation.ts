@@ -13,7 +13,7 @@ import {
     CircleGeometry,
 } from 'three'
 
-import { RenderController } from './RenderController.js'
+import { RenderController } from '../3D/RenderController.js'
 
 export class VRNavigation {
     controller: RenderController
