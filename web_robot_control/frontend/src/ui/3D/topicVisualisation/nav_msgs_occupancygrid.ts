@@ -13,7 +13,6 @@ export const nav_msgs_occupancygrid = (topicName: string, options?: any) => {
 
     useTopicSubscriber(topicName, 'nav_msgs/msg/OccupancyGrid', (grid) => {
         if (grid.header.frame_id === 'map') {
-            console.log(grid)
             const { width, height, resolution } = grid.info
 
             textureCanvas.width = width
@@ -39,6 +38,11 @@ export const nav_msgs_occupancygrid = (topicName: string, options?: any) => {
                     pixels[4 * i + 1] = val
                     pixels[4 * i + 2] = val
                     pixels[4 * i + 3] = 255
+                } else {
+                    pixels[4 * i] = 200
+                    pixels[4 * i + 1] = 200
+                    pixels[4 * i + 2] = 200
+                    pixels[4 * i + 3] = 50
                 }
             }
 
@@ -46,6 +50,7 @@ export const nav_msgs_occupancygrid = (topicName: string, options?: any) => {
 
             material.map = new THREE.CanvasTexture(textureCanvas)
             material.map.magFilter = THREE.NearestFilter
+            material.map.minFilter = THREE.NearestFilter
         }
     })
     mesh.rotateX(Math.PI)

@@ -8,8 +8,11 @@ import { VRNavigation } from './VRNavigation'
 import { ROS2TFClient } from 'roslib'
 import { useRosStore } from '@/stores/ros'
 import { robotLoader } from './robotLoader'
-import { nav_msgs_path } from './topicVisualisation/nav_msgs_path'
-import { nav_msgs_occupancygrid } from './topicVisualisation/nav_msgs_occupancygrid'
+import {
+    nav_msgs_path,
+    nav_msgs_occupancygrid,
+    sensor_msgs_pointcloud2,
+} from './topicVisualisation'
 
 export class RenderController {
     scene: THREE.Scene
@@ -171,6 +174,11 @@ export class RenderController {
 
         group.add(nav_msgs_path('/plan'))
         group.add(nav_msgs_occupancygrid('/map'))
+        group.add(
+            sensor_msgs_pointcloud2(
+                '/head_front_camera/depth_registered/points_downsampled'
+            )
+        )
 
         this.scene.add(group)
     }

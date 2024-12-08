@@ -55,7 +55,11 @@ export const onRosDisconnected = (callback: () => void) => {
     )
 }
 
-export const useTopic = (topicName: string, messageType: string) => {
+export const useTopic = (
+    topicName: string,
+    messageType: string,
+    options?: any
+) => {
     const rosStore = useRosStore()
     const topic = computed(() => {
         if (rosStore.ros && rosStore.connected) {
@@ -63,6 +67,7 @@ export const useTopic = (topicName: string, messageType: string) => {
                 ros: rosStore.ros,
                 name: topicName,
                 messageType,
+                ...(options || {}),
             })
         } else {
             return null
@@ -75,9 +80,10 @@ export const useTopic = (topicName: string, messageType: string) => {
 export const useTopicSubscriber = (
     topicName: string,
     messageType: string,
-    callback: (data: any) => void
+    callback: (data: any) => void,
+    options?: any
 ) => {
-    const topic = useTopic(topicName, messageType)
+    const topic = useTopic(topicName, messageType, options)
 
     watch(
         topic,

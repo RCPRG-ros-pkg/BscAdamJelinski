@@ -7,7 +7,6 @@ export const nav_msgs_path = (topicName: string, options?: any) => {
     const line = new THREE.Line(geometry, material)
 
     useTopicSubscriber(topicName, 'nav_msgs/msg/Path', (path) => {
-        console.log(path)
         if (path.header.frame_id === 'map') {
             const points = []
             for (const pose of path.poses) {
