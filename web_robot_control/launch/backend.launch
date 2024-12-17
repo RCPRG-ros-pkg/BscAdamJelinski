@@ -7,6 +7,7 @@
     
     <node pkg="rosbridge_server" exec="rosbridge_websocket" name="rosbridge_websocket">
         <param name="use_compression" value="true" />
+        <param name="send_action_goals_in_new_thread" value="true" />
     </node>
     <node pkg="tf2_web_republisher" exec="tf2_web_republisher_node" name="tf2_web_republisher_node"></node>
 

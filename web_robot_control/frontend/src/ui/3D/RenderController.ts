@@ -11,7 +11,10 @@ import { robotLoader } from './robotLoader'
 import {
     nav_msgs_path,
     nav_msgs_occupancygrid,
+    nav_msgs_odometry,
     sensor_msgs_pointcloud2,
+    sensor_msgs_pointcloud2_trace,
+    geometry_msgs_posestamped,
 } from './topicVisualisation'
 
 export class RenderController {
@@ -71,7 +74,7 @@ export class RenderController {
         this.initTF2()
         this.initTestLight()
         //this.loadTestModels()
-        this.loadModels()
+        //this.loadModels()
         this.loadTopics()
         this.VRNavigation = new VRNavigation(this)
 
@@ -134,7 +137,7 @@ export class RenderController {
         const rosStore = useRosStore()
         this.tf2Client = new ROS2TFClient({
             ros: rosStore.ros!!,
-            fixedFrame: 'map',
+            fixedFrame: 'world',
             angularThres: 0.01,
             transThres: 0.01,
         })
@@ -174,11 +177,17 @@ export class RenderController {
 
         group.add(nav_msgs_path('/plan'))
         group.add(nav_msgs_occupancygrid('/map'))
+        /*
         group.add(
             sensor_msgs_pointcloud2(
-                '/head_front_camera/depth_registered/points_downsampled'
+                '/head_front_camera/depth_registered/points_downsampled',
+                this
             )
         )
+            */
+
+        group.add(sensor_msgs_pointcloud2_trace('/slam/pointcloud', this))
+        group.add(geometry_msgs_posestamped('/slam/odometry', this))
 
         this.scene.add(group)
     }

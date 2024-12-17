@@ -3,43 +3,17 @@ import * as THREE from 'three'
 import { RenderController } from '../RenderController'
 import { Transform } from 'roslib'
 
-export const sensor_msgs_pointcloud2 = (
+export const sensor_msgs_pointcloud2_trace = (
     topicName: string,
     controller: RenderController,
     options?: any
 ) => {
     options = options || { color: 'RGB' }
-    const maxPoints = 1000000
-
-    const geom = new THREE.BufferGeometry()
-    const positions = new THREE.BufferAttribute(
-        new Float32Array(maxPoints * 3),
-        3,
-        false
-    )
-    const colors = new THREE.BufferAttribute(
-        new Float32Array(maxPoints * 3),
-        3,
-        false
-    )
-    geom.setAttribute('position', positions)
-    geom.setAttribute('color', colors)
-
-    const material = new THREE.PointsMaterial({
-        size: 0.005,
-        vertexColors: true,
-    })
-    const object = new THREE.Points(geom, material)
-    object.frustumCulled = false
+    const maxPoints = 100000
 
     let frame_id = ''
     const latestPosition = new THREE.Vector3()
     const latestRotation = new THREE.Quaternion()
-
-    controller.frameCallbacks.push(() => {
-        object.position.lerp(latestPosition, 0.2)
-        object.quaternion.slerp(latestRotation, 0.2)
-    })
 
     const updatePosition = (tf: Transform) => {
         latestPosition.set(tf.translation.x, tf.translation.y, tf.translation.z)
@@ -50,6 +24,9 @@ export const sensor_msgs_pointcloud2 = (
             tf.rotation.w
         )
     }
+
+    const group = new THREE.Group()
+    const objects: Array<THREE.Points> = []
 
     useTopicSubscriber(
         topicName,
@@ -62,6 +39,27 @@ export const sensor_msgs_pointcloud2 = (
                 frame_id = msg.header.frame_id
                 controller.tf2Client?.subscribe(frame_id, updatePosition)
             }
+
+            const geom = new THREE.BufferGeometry()
+            const positions = new THREE.BufferAttribute(
+                new Float32Array(maxPoints * 3),
+                3,
+                false
+            )
+            const colors = new THREE.BufferAttribute(
+                new Float32Array(maxPoints * 3),
+                3,
+                false
+            )
+            geom.setAttribute('position', positions)
+            geom.setAttribute('color', colors)
+
+            const material = new THREE.PointsMaterial({
+                size: 0.005,
+                vertexColors: true,
+            })
+            const object = new THREE.Points(geom, material)
+            object.frustumCulled = false
 
             const fields: { [key: string]: any } = {}
             for (let i = 0; i < msg.fields.length; i++) {
@@ -162,9 +160,27 @@ export const sensor_msgs_pointcloud2 = (
                     count: pointCount * positions.itemSize,
                 },
             ]
+
+            object.position.copy(latestPosition)
+            object.rotation.setFromQuaternion(latestRotation)
+
+            group.add(object)
+            objects.push(object)
+
+            if (objects.length > 50) {
+                group.remove(objects[0])
+                objects[0].geometry.dispose()
+                if (objects[0].material instanceof Array) {
+                    objects[0].material[0].dispose()
+                } else {
+                    objects[0].material.dispose()
+                }
+
+                objects.shift()
+            }
         },
         { compression: 'cbor', throttle_rate: 100, queue_size: 1 }
     )
 
-    return object
+    return group
 }
