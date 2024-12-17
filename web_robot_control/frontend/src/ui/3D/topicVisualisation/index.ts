@@ -1,3 +1,6 @@
 export * from './nav_msgs_occupancygrid'
 export * from './nav_msgs_path'
+export * from './nav_msgs_odometry'
+export * from './geometry_msgs_posestamped'
 export * from './sensor_msgs_pointcloud2'
+export * from './sensor_msgs_pointcloud2_trace'

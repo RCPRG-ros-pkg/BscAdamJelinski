@@ -33,7 +33,7 @@ export const nav_msgs_occupancygrid = (topicName: string, options?: any) => {
 
             for (let i = 0; i < grid.data.length; i++) {
                 if (grid.data[i] !== -1) {
-                    const val = (1 - grid.data[i]) * 255
+                    const val = (1 - grid.data[i]) * 220
                     pixels[4 * i] = val
                     pixels[4 * i + 1] = val
                     pixels[4 * i + 2] = val
