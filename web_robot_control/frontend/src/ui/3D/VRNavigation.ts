@@ -11,6 +11,7 @@ import {
     MeshBasicMaterial,
     DoubleSide,
     CircleGeometry,
+    Euler,
 } from 'three'
 
 import { RenderController } from '../3D/RenderController.js'
@@ -25,6 +26,9 @@ export class VRNavigation {
     lineGeometryVertices: Float32Array | undefined
 
     guidingController: XRTargetRaySpace | null = null
+
+    grabbingController: XRTargetRaySpace | null = null
+    lastGrabbingPose: { position: Vector3; rotation: Quaternion } | null = null
 
     constructor(renderController: RenderController) {
         this.controller = renderController
@@ -49,6 +53,15 @@ export class VRNavigation {
             controller.addEventListener(
                 'selectend',
                 this.onSelectEnd(controller)
+            )
+
+            controller.addEventListener(
+                'squeezestart',
+                this.onSquezeStart(controller)
+            )
+            controller.addEventListener(
+                'squeezeend',
+                this.onSquezeEnd(controller)
             )
         }
 
@@ -85,6 +98,27 @@ export class VRNavigation {
             this.guideTarget.position.copy(
                 this.positionAtT(time * 0.98, position, velocity)
             )
+        }
+        if (this.grabbingController && this.lastGrabbingPose) {
+            const position = new Vector3(),
+                rotation = new Quaternion()
+            this.grabbingController.getWorldPosition(position)
+            this.grabbingController.getWorldQuaternion(rotation)
+
+            const offsetPosition = new Vector3().subVectors(
+                this.lastGrabbingPose.position,
+                position
+            )
+            const offsetRotationRaw = new Quaternion().multiplyQuaternions(
+                rotation,
+                this.lastGrabbingPose.rotation.clone().invert()
+            )
+            const offsetYaw = new Euler().setFromQuaternion(offsetRotationRaw).y
+
+            const offsetRotation = new Quaternion()
+            offsetRotation.setFromEuler(new Euler(0, offsetYaw, 0))
+
+            this.teleport(offsetPosition, offsetRotation)
         }
     }
 
@@ -161,18 +195,35 @@ export class VRNavigation {
         }
     }
 
-    teleport = (origin: Vector3) => {
+    onSquezeStart = (controller: XRTargetRaySpace) => () => {
+        this.grabbingController = controller
+
+        const position = new Vector3(),
+            rotation = new Quaternion()
+        this.grabbingController.getWorldPosition(position)
+        this.grabbingController.getWorldQuaternion(rotation)
+        this.lastGrabbingPose = { position, rotation }
+    }
+    onSquezeEnd = (controller: XRTargetRaySpace) => () => {
+        if (this.grabbingController === controller) {
+            this.grabbingController = null
+        }
+    }
+
+    teleport = (offset: Vector3, offsetRotation?: Quaternion) => {
         const baseReferenceSpace =
             this.controller.renderer.xr.getReferenceSpace()
 
         const offsetPosition = {
-            x: -origin.x,
-            y: -origin.y,
-            z: -origin.z,
+            x: -offset.x,
+            y: -offset.y,
+            z: -offset.z,
             w: 1,
         }
-        const offsetRotation = new Quaternion()
-        const transform = new XRRigidTransform(offsetPosition, offsetRotation)
+        const transform = new XRRigidTransform(
+            offsetPosition,
+            offsetRotation || new Quaternion()
+        )
         const teleportSpaceOffset =
             baseReferenceSpace!.getOffsetReferenceSpace(transform)
 
