@@ -11,16 +11,17 @@ import { robotLoader } from './robotLoader'
 import {
     nav_msgs_path,
     nav_msgs_occupancygrid,
-    nav_msgs_odometry,
+    //nav_msgs_odometry,
     sensor_msgs_pointcloud2,
-    sensor_msgs_pointcloud2_trace,
-    geometry_msgs_posestamped,
+    //sensor_msgs_pointcloud2_trace,
+    //geometry_msgs_posestamped,
 } from './topicVisualisation'
 
 export class RenderController {
     scene: THREE.Scene
     renderer: THREE.WebGLRenderer
     camera: THREE.PerspectiveCamera
+    cameraGroup: THREE.Group
     controls: OrbitControls
     controllers: Array<{
         hand: THREE.XRHandSpace
@@ -50,6 +51,9 @@ export class RenderController {
         this.camera.position.y = 15
         this.camera.position.z = 15
         this.camera.lookAt(0, 0, -10)
+        this.cameraGroup = new THREE.Group()
+        this.cameraGroup.add(this.camera)
+        this.scene.add(this.cameraGroup)
 
         // ===== Renderer =====
         this.renderer = new THREE.WebGLRenderer({
@@ -74,7 +78,7 @@ export class RenderController {
         this.initTF2()
         this.initTestLight()
         //this.loadTestModels()
-        //this.loadModels()
+        this.loadModels()
         this.loadTopics()
         this.VRNavigation = new VRNavigation(this)
 
@@ -103,17 +107,17 @@ export class RenderController {
 
         return [0, 1].map((index) => {
             const controller = this.renderer.xr.getController(index)
-            this.scene.add(controller)
+            this.cameraGroup.add(controller)
 
             const controllerGrip = this.renderer.xr.getControllerGrip(index)
             const model =
                 controllerModelFactory.createControllerModel(controllerGrip)
             controllerGrip.add(model)
-            this.scene.add(controllerGrip)
+            this.cameraGroup.add(controllerGrip)
 
             const hand = this.renderer.xr.getHand(index)
             hand.add(handModelFactory.createHandModel(hand, 'mesh'))
-            this.scene.add(hand)
+            this.cameraGroup.add(hand)
 
             return {
                 hand,
@@ -137,7 +141,7 @@ export class RenderController {
         const rosStore = useRosStore()
         this.tf2Client = new ROS2TFClient({
             ros: rosStore.ros!!,
-            fixedFrame: 'world',
+            fixedFrame: 'map',
             angularThres: 0.01,
             transThres: 0.01,
         })
@@ -177,17 +181,15 @@ export class RenderController {
 
         group.add(nav_msgs_path('/plan'))
         group.add(nav_msgs_occupancygrid('/map'))
-        /*
         group.add(
             sensor_msgs_pointcloud2(
                 '/head_front_camera/depth_registered/points_downsampled',
                 this
             )
         )
-            */
 
-        group.add(sensor_msgs_pointcloud2_trace('/slam/pointcloud', this))
-        group.add(geometry_msgs_posestamped('/slam/odometry', this))
+        //group.add(sensor_msgs_pointcloud2_trace('/slam/pointcloud', this))
+        //group.add(nav_msgs_odometry('/slam/odometry', this))
 
         this.scene.add(group)
     }

@@ -39,7 +39,8 @@ export const onRosConnected = (callback: () => void) => {
             if (rosStore.connected) {
                 callback()
             }
-        }
+        },
+        { immediate: true }
     )
 }
 

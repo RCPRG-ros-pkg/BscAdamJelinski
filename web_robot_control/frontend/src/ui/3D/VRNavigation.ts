@@ -27,8 +27,12 @@ export class VRNavigation {
 
     guidingController: XRTargetRaySpace | null = null
 
-    grabbingController: XRTargetRaySpace | null = null
-    lastGrabbingPose: { position: Vector3; rotation: Quaternion } | null = null
+    grabbedControllers: [boolean, boolean] = [false, false]
+    lastGrabbingPose: {
+        midpoint: Vector3
+        difference: Vector3
+        distance: number
+    } | null = null
 
     constructor(renderController: RenderController) {
         this.controller = renderController
@@ -57,11 +61,11 @@ export class VRNavigation {
 
             controller.addEventListener(
                 'squeezestart',
-                this.onSquezeStart(controller)
+                this.onSquezeStart(controller, index)
             )
             controller.addEventListener(
                 'squeezeend',
-                this.onSquezeEnd(controller)
+                this.onSquezeEnd(controller, index)
             )
         }
 
@@ -99,25 +103,54 @@ export class VRNavigation {
                 this.positionAtT(time * 0.98, position, velocity)
             )
         }
-        if (this.grabbingController && this.lastGrabbingPose) {
-            const position = new Vector3(),
-                rotation = new Quaternion()
-            this.grabbingController.getWorldPosition(position)
-            this.grabbingController.getWorldQuaternion(rotation)
+        if (
+            this.grabbedControllers[0] &&
+            this.grabbedControllers[1] &&
+            this.lastGrabbingPose
+        ) {
+            const position1 = new Vector3(),
+                position2 = new Vector3()
+            this.controller.controllers[0].controller.getWorldPosition(
+                position1
+            )
+            this.controller.controllers[1].controller.getWorldPosition(
+                position2
+            )
+
+            const midpoint = new Vector3()
+                .addVectors(position1, position2)
+                .divideScalar(2)
+            const difference = new Vector3()
+                .subVectors(position1, position2)
+                .normalize()
+            const distance = new Vector3()
+                .subVectors(position1, position2)
+                .length()
 
             const offsetPosition = new Vector3().subVectors(
-                this.lastGrabbingPose.position,
-                position
+                this.lastGrabbingPose.midpoint,
+                midpoint
             )
-            const offsetRotationRaw = new Quaternion().multiplyQuaternions(
-                rotation,
-                this.lastGrabbingPose.rotation.clone().invert()
+            const offsetRotationRaw = new Quaternion().setFromUnitVectors(
+                difference,
+                this.lastGrabbingPose.difference
             )
             const offsetYaw = new Euler().setFromQuaternion(offsetRotationRaw).y
 
             const offsetRotation = new Quaternion()
             offsetRotation.setFromEuler(new Euler(0, offsetYaw, 0))
+            /*
+            offsetRotation.set(
+                offsetRotationRaw.x,
+                offsetRotationRaw.y,
+                offsetRotationRaw.z,
+                offsetRotationRaw.w
+            )
+                */
 
+            this.controller.cameraGroup.scale.multiplyScalar(
+                this.lastGrabbingPose.distance / distance
+            )
             this.teleport(offsetPosition, offsetRotation)
         }
     }
@@ -195,38 +228,40 @@ export class VRNavigation {
         }
     }
 
-    onSquezeStart = (controller: XRTargetRaySpace) => () => {
-        this.grabbingController = controller
+    onSquezeStart = (controller: XRTargetRaySpace, index: number) => () => {
+        this.grabbedControllers[index] = true
 
-        const position = new Vector3(),
-            rotation = new Quaternion()
-        this.grabbingController.getWorldPosition(position)
-        this.grabbingController.getWorldQuaternion(rotation)
-        this.lastGrabbingPose = { position, rotation }
-    }
-    onSquezeEnd = (controller: XRTargetRaySpace) => () => {
-        if (this.grabbingController === controller) {
-            this.grabbingController = null
+        if (this.grabbedControllers[0] && this.grabbedControllers[1]) {
+            const position1 = new Vector3(),
+                position2 = new Vector3()
+            this.controller.controllers[0].controller.getWorldPosition(
+                position1
+            )
+            this.controller.controllers[1].controller.getWorldPosition(
+                position2
+            )
+
+            const midpoint = new Vector3()
+                .addVectors(position1, position2)
+                .divideScalar(2)
+            const difference = new Vector3()
+                .subVectors(position1, position2)
+                .normalize()
+            const distance = new Vector3()
+                .subVectors(position1, position2)
+                .length()
+
+            this.lastGrabbingPose = { midpoint, difference, distance }
         }
+    }
+    onSquezeEnd = (controller: XRTargetRaySpace, index: number) => () => {
+        this.grabbedControllers[index] = false
     }
 
     teleport = (offset: Vector3, offsetRotation?: Quaternion) => {
-        const baseReferenceSpace =
-            this.controller.renderer.xr.getReferenceSpace()
-
-        const offsetPosition = {
-            x: -offset.x,
-            y: -offset.y,
-            z: -offset.z,
-            w: 1,
-        }
-        const transform = new XRRigidTransform(
-            offsetPosition,
+        this.controller.cameraGroup.applyQuaternion(
             offsetRotation || new Quaternion()
         )
-        const teleportSpaceOffset =
-            baseReferenceSpace!.getOffsetReferenceSpace(transform)
-
-        this.controller.renderer.xr.setReferenceSpace(teleportSpaceOffset)
+        this.controller.cameraGroup.position.add(offset)
     }
 }
