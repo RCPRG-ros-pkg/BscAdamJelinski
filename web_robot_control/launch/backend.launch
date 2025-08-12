@@ -15,4 +15,10 @@
         <remap from="input" to="/head_front_camera/depth_registered/points" />
         <remap from="output" to="/head_front_camera/depth_registered/points_downsampled" />
     </node>
+
+    <!-- Web Robot Control Server -->
+    <node pkg="web_robot_control" exec="server" name="web_robot_control_server">
+        <param name="port" value="8080" />
+        <param name="host" value="0.0.0.0" />
+    </node>
 </launch>

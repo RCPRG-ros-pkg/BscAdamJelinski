@@ -23,4 +23,10 @@
   <depend>rosbridge_server</depend>
 
   <depend>joint_state_publisher_gui</depend>
+
+  <exec_depend>python3-flask</exec_depend>
+  <exec_depend>ament_index_python</exec_depend>
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>python3-tornado</exec_depend>
+  <exec_depend>python3-cryptography</exec_depend>
 </package>
