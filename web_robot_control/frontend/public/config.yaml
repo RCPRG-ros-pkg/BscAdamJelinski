@@ -7,6 +7,12 @@ tf:
 robot:
   joint_states_topics: ["/joint_states"]
 
+vrPublisher:
+  headsetTopic: "/vr/headset_pose"
+  leftControllerTopic: "/vr/left_controller_pose"
+  rightControllerTopic: "/vr/right_controller_pose"
+  publishRate: 30
+
 topics:
   - name: "/local_plan"
     message_type: "nav_msgs/Path"

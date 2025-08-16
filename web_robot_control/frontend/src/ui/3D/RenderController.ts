@@ -4,6 +4,7 @@ import { VRButton } from 'three/addons/webxr/VRButton.js'
 import { XRControllerModelFactory } from 'three/addons/webxr/XRControllerModelFactory.js'
 import { XRHandModelFactory } from 'three/examples/jsm/Addons.js'
 import { VRNavigation } from './VRNavigation'
+import { VRPositionPublisher } from './VRPositionPublisher'
 import { ROS2TFClient } from 'roslib'
 import { useRosStore } from '@/stores/ros'
 import { robotLoader } from './robotLoader'
@@ -44,10 +45,11 @@ export class RenderController {
     frameCallbacks: Array<() => void> = []
 
     VRNavigation!: VRNavigation
+    VRPositionPublisher!: VRPositionPublisher
 
-    tf2Client: ROS2TFClient | undefined
+    tf2Client!: ROS2TFClient
 
-    config: RenderControllerConfig | undefined
+    config!: RenderControllerConfig
 
     constructor(canvas: HTMLCanvasElement, width: number, height: number) {
         // ===== Scene =====
@@ -101,6 +103,10 @@ export class RenderController {
         this.loadModels()
         this.loadTopics()
         this.VRNavigation = new VRNavigation(this)
+        this.VRPositionPublisher = new VRPositionPublisher(
+            this,
+            this.config.vrPublisher
+        )
 
         this.renderer.setAnimationLoop(() => {
             this.render()
@@ -128,6 +134,12 @@ export class RenderController {
                 joint_states_topics: ['/joint_states'],
             },
             topics: [],
+            vrPublisher: {
+                headsetTopic: '/vr/headset_pose',
+                leftControllerTopic: '/vr/left_controller_pose',
+                rightControllerTopic: '/vr/right_controller_pose',
+                publishRate: 30,
+            },
         }
     }
 
@@ -184,9 +196,9 @@ export class RenderController {
         const rosStore = useRosStore()
         this.tf2Client = new ROS2TFClient({
             ros: rosStore.ros!!,
-            fixedFrame: this.config!.tf.fixed_frame,
-            angularThres: this.config!.tf.angular_threshold,
-            transThres: this.config!.tf.translation_threshold,
+            fixedFrame: this.config.tf.fixed_frame,
+            angularThres: this.config.tf.angular_threshold,
+            transThres: this.config.tf.translation_threshold,
         })
     }
 
@@ -198,7 +210,7 @@ export class RenderController {
                 const urdf = msg.data
                 const robot = await robotLoader(
                     urdf,
-                    this.config!.robot.joint_states_topics,
+                    this.config.robot.joint_states_topics,
                     this
                 )
                 this.scene.add(robot)
@@ -210,7 +222,7 @@ export class RenderController {
         const group = new THREE.Group()
         group.rotateX(-Math.PI / 2)
 
-        this.config!.topics.forEach((topic) => {
+        this.config.topics.forEach((topic) => {
             const visualizer = topicVisualizers[topic.message_type]
             if (visualizer) {
                 group.add(visualizer(topic.name, this, topic.options))

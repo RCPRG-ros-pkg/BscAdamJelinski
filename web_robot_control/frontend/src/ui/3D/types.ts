@@ -17,10 +17,18 @@ export interface TopicConfig {
     options?: TopicVisualizationOptions
 }
 
+export interface VRPositionPublisherConfig {
+    headsetTopic: string
+    leftControllerTopic: string
+    rightControllerTopic: string
+    publishRate: number // Hz
+}
+
 export interface RenderControllerConfig {
     tf: TFConfig
     robot: RobotConfig
     topics: TopicConfig[]
+    vrPublisher: VRPositionPublisherConfig
 }
 
 export interface TopicVisualizer {
