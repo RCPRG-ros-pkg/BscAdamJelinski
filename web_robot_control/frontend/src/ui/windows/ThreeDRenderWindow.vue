@@ -2,6 +2,7 @@
 import WebGL from 'three/addons/capabilities/WebGL.js'
 
 import { RenderController } from '../3D/RenderController'
+import { onRosConnected } from '@/core/roslibExtensions'
 
 const props = defineProps(['windowDimensions'])
 const width = computed<number>(() => props.windowDimensions.width)
@@ -11,16 +12,24 @@ const webGLAvailable = WebGL.isWebGL2Available()
 
 const canvas = ref<HTMLCanvasElement | undefined>()
 
-let renderer: RenderController
+const renderer = ref<RenderController | undefined>()
 
 onMounted(() => {
-    if (canvas.value) {
-        renderer = new RenderController(canvas.value, width.value, height.value)
-    }
+    onRosConnected(() => {
+        if (canvas.value) {
+            renderer.value = new RenderController(
+                canvas.value,
+                width.value,
+                height.value
+            )
+        }
+    })
 })
 
-watch([width, height], () => {
-    renderer!.updateWindowDimensions(width.value, height.value)
+watch([width, height, renderer], () => {
+    if (renderer.value) {
+        renderer.value.updateWindowDimensions(width.value, height.value)
+    }
 })
 </script>
 <template>

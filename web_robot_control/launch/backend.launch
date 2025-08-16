@@ -16,9 +16,9 @@
         <remap from="output" to="/head_front_camera/depth_registered/points_downsampled" />
     </node>
 
-    <!-- Web Robot Control Server -->
     <node pkg="web_robot_control" exec="server" name="web_robot_control_server">
         <param name="port" value="8080" />
         <param name="host" value="0.0.0.0" />
+        <param name='config' type="str" value="$(command 'cat $(find-pkg-share web_robot_control)/config/config.yaml')"/>
     </node>
 </launch>

@@ -1,6 +1,5 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { VRButton } from 'three/addons/webxr/VRButton.js'
 import { XRControllerModelFactory } from 'three/addons/webxr/XRControllerModelFactory.js'
 import { XRHandModelFactory } from 'three/examples/jsm/Addons.js'
@@ -8,14 +7,24 @@ import { VRNavigation } from './VRNavigation'
 import { ROS2TFClient } from 'roslib'
 import { useRosStore } from '@/stores/ros'
 import { robotLoader } from './robotLoader'
+import { parse } from 'yaml'
+import { RenderControllerConfig, TopicVisualizer } from './types'
 import {
     nav_msgs_path,
     nav_msgs_occupancygrid,
-    //nav_msgs_odometry,
+    nav_msgs_odometry,
     sensor_msgs_pointcloud2,
-    //sensor_msgs_pointcloud2_trace,
-    //geometry_msgs_posestamped,
+    geometry_msgs_posestamped,
 } from './topicVisualisation'
+import { useTopicSubscriber } from '@/core/roslibExtensions'
+
+const topicVisualizers: Record<string, TopicVisualizer> = {
+    'nav_msgs/Path': nav_msgs_path,
+    'nav_msgs/OccupancyGrid': nav_msgs_occupancygrid,
+    'sensor_msgs/PointCloud2': sensor_msgs_pointcloud2,
+    'nav_msgs/Odometry': nav_msgs_odometry,
+    'geometry_msgs/PoseStamped': geometry_msgs_posestamped,
+}
 
 export class RenderController {
     scene: THREE.Scene
@@ -34,9 +43,11 @@ export class RenderController {
 
     frameCallbacks: Array<() => void> = []
 
-    VRNavigation: VRNavigation
+    VRNavigation!: VRNavigation
 
     tf2Client: ROS2TFClient | undefined
+
+    config: RenderControllerConfig | undefined
 
     constructor(canvas: HTMLCanvasElement, width: number, height: number) {
         // ===== Scene =====
@@ -75,9 +86,18 @@ export class RenderController {
 
         this.controllers = this.initControllers()
 
+        this.initializeWithConfig()
+    }
+
+    async initializeWithConfig() {
+        try {
+            await this.loadConfig()
+        } catch (error) {
+            this.getDefaultConfig()
+        }
+
         this.initTF2()
         this.initTestLight()
-        //this.loadTestModels()
         this.loadModels()
         this.loadTopics()
         this.VRNavigation = new VRNavigation(this)
@@ -86,6 +106,29 @@ export class RenderController {
             this.render()
         })
         this.render()
+    }
+
+    async loadConfig() {
+        const response = await fetch('/config.yaml', { cache: 'no-store' })
+        if (!response.ok)
+            throw new Error(`Couldn't load config: ${response.status}`)
+
+        const yamlText = await response.text()
+        this.config = parse(yamlText) as RenderControllerConfig
+    }
+
+    getDefaultConfig() {
+        this.config = {
+            tf: {
+                fixed_frame: 'map',
+                angular_threshold: 0.01,
+                translation_threshold: 0.01,
+            },
+            robot: {
+                joint_states_topics: ['/joint_states'],
+            },
+            topics: [],
+        }
     }
 
     updateWindowDimensions = (width: number, height: number) => {
@@ -141,55 +184,42 @@ export class RenderController {
         const rosStore = useRosStore()
         this.tf2Client = new ROS2TFClient({
             ros: rosStore.ros!!,
-            fixedFrame: 'map',
-            angularThres: 0.01,
-            transThres: 0.01,
+            fixedFrame: this.config!.tf.fixed_frame,
+            angularThres: this.config!.tf.angular_threshold,
+            transThres: this.config!.tf.translation_threshold,
         })
     }
 
     loadModels = async () => {
-        const robot = await robotLoader(
-            '/models/urdf/tiago.urdf',
-            this,
-            'base_link',
-            ['/joint_states']
-        )
-        this.scene.add(robot)
-    }
-
-    loadTestModels = () => {
-        new GLTFLoader().load(
-            '/models/marsyard_2022.glb',
-            (gltf) => {
-                this.map = gltf.scene
-
-                this.scene.add(gltf.scene)
-            },
-            undefined,
-            (error) => {
-                console.error(error)
+        useTopicSubscriber(
+            '/robot_description',
+            'std_msgs/msg/String',
+            async (msg) => {
+                const urdf = msg.data
+                const robot = await robotLoader(
+                    urdf,
+                    this.config!.robot.joint_states_topics,
+                    this
+                )
+                this.scene.add(robot)
             }
         )
-
-        const axesTest = new THREE.AxesHelper(3)
-        this.scene.add(axesTest)
     }
 
     loadTopics = () => {
         const group = new THREE.Group()
         group.rotateX(-Math.PI / 2)
 
-        group.add(nav_msgs_path('/plan'))
-        group.add(nav_msgs_occupancygrid('/map'))
-        group.add(
-            sensor_msgs_pointcloud2(
-                '/head_front_camera/depth_registered/points_downsampled',
-                this
-            )
-        )
-
-        //group.add(sensor_msgs_pointcloud2_trace('/slam/pointcloud', this))
-        //group.add(nav_msgs_odometry('/slam/odometry', this))
+        this.config!.topics.forEach((topic) => {
+            const visualizer = topicVisualizers[topic.message_type]
+            if (visualizer) {
+                group.add(visualizer(topic.name, this, topic.options))
+            } else {
+                console.warn(
+                    `Unsupported message type: ${topic.message_type} for topic: ${topic.name}`
+                )
+            }
+        })
 
         this.scene.add(group)
     }

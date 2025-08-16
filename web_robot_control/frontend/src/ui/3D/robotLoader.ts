@@ -1,24 +1,26 @@
-import { useTopicSubscriber } from '@/core/roslibExtensions'
+import { useTF2Pose, useTopicSubscriber } from '@/core/roslibExtensions'
 import { MathUtils, Group } from 'three'
-import * as THREE from 'three'
 import { RenderController } from './RenderController'
-import { urdfLoader } from './urdfLoader'
+import { urdfParser } from './urdfParser'
 
 export const robotLoader = async (
-    path: string,
-    controller: RenderController,
-    tfBaseFrame: string,
-    jointTopics?: [string]
+    urdf: string,
+    jointTopics: string[],
+    controller: RenderController
 ) => {
-    const robot = await urdfLoader(path)
+    const robot = await urdfParser(urdf)
+    const tfBaseFrame =
+        Object.entries(robot.frames).find(([, frame]) => !frame.parent)?.[0] ||
+        'base_link'
+
     const latestJointState = Object.fromEntries(
         Object.entries(robot.joints).map(([key, joint]) => [
             key,
             joint.angle as number,
         ])
     )
-    const latestPosition = new THREE.Vector3()
-    const latestRotation = new THREE.Quaternion()
+
+    const latestPose = useTF2Pose(tfBaseFrame, controller.tf2Client!)
 
     for (const topic of jointTopics || []) {
         useTopicSubscriber(topic, 'sensor_msgs/msg/JointState', (data) => {
@@ -29,16 +31,6 @@ export const robotLoader = async (
         })
     }
 
-    controller.tf2Client?.subscribe(tfBaseFrame!, (tf) => {
-        latestPosition.set(tf.translation.x, tf.translation.y, tf.translation.z)
-        latestRotation.set(
-            tf.rotation.x,
-            tf.rotation.y,
-            tf.rotation.z,
-            tf.rotation.w
-        )
-    })
-
     controller.frameCallbacks.push(() => {
         for (const [name, value] of Object.entries(latestJointState)) {
             robot.setJointValue(
@@ -46,8 +38,8 @@ export const robotLoader = async (
                 MathUtils.lerp(robot.joints[name].angle as number, value, 0.2)
             )
         }
-        robot.position.lerp(latestPosition, 0.2)
-        robot.quaternion.slerp(latestRotation, 0.2)
+        robot.position.lerp(latestPose.position, 0.2)
+        robot.quaternion.slerp(latestPose.rotation, 0.2)
     })
 
     const group = new Group()

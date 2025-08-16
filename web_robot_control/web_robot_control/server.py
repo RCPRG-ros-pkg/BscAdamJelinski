@@ -13,7 +13,7 @@ import rclpy
 from rclpy.node import Node
 from ament_index_python.packages import get_package_share_directory
 
-from flask import Flask, send_from_directory, jsonify
+from flask import Flask, Response, send_from_directory, jsonify
 import tornado.wsgi
 import tornado.httpserver
 import tornado.ioloop
@@ -26,13 +26,11 @@ class WebRobotControlNode(Node):
 
         self.declare_parameter("port", 8080)
         self.declare_parameter("host", "0.0.0.0")
+        self.declare_parameter("config", "")
 
         self.port = self.get_parameter("port").get_parameter_value().integer_value
         self.host = self.get_parameter("host").get_parameter_value().string_value
-
-        self.get_logger().info(
-            f"Web Robot Control Server node started on {self.host}:{self.port}"
-        )
+        self.config = self.get_parameter("config").get_parameter_value().string_value
 
 
 def generate_self_signed_cert():
@@ -170,6 +168,10 @@ def create_app(node: WebRobotControlNode, frontend_dist_path: Path) -> Flask:
     def serve_frontend():
         return send_from_directory(frontend_dist_path, "index.html")
 
+    @app.route("/config.yaml")
+    def serve_config():
+        return Response(node.config, mimetype="text/yaml")
+
     @app.route("/<path:path>")
     def serve_static(path: str):
         file_path = frontend_dist_path / path
@@ -256,8 +258,6 @@ def main() -> None:
             node.get_logger().info("SSL key file cleaned up")
         except Exception as e:
             node.get_logger().warn(f"Failed to clean up key file: {e}")
-
-    rclpy.shutdown()
 
 
 if __name__ == "__main__":

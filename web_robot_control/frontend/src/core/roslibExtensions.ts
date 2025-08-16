@@ -1,6 +1,9 @@
 import { useRosStore } from '@/stores/ros'
-import { Topic, Service } from 'roslib'
+import { Topic, Service, TFClient, ROS2TFClient, Transform } from 'roslib'
 import { computed, watch } from 'vue'
+
+import * as THREE from 'three'
+import { RenderController } from '@/ui/3D/RenderController'
 
 export const callService = (
     serviceName: string,
@@ -89,7 +92,6 @@ export const useTopicSubscriber = (
     watch(
         topic,
         (newTopic, oldTopic) => {
-            console.log(newTopic, oldTopic)
             if (oldTopic) oldTopic.unsubscribe()
             if (newTopic) newTopic.subscribe(callback)
         },
@@ -97,4 +99,57 @@ export const useTopicSubscriber = (
     )
 
     return topic
+}
+
+export const useTF2Pose = (
+    frame_id: string | Ref<string>,
+    tf2Client: TFClient | ROS2TFClient
+) => {
+    const currentPose = {
+        position: new THREE.Vector3(),
+        rotation: new THREE.Quaternion(),
+    }
+    const frame = typeof frame_id === 'string' ? ref(frame_id) : frame_id
+
+    const updatePose = (tf: Transform) => {
+        currentPose.position.set(
+            tf.translation.x,
+            tf.translation.y,
+            tf.translation.z
+        )
+        currentPose.rotation.set(
+            tf.rotation.x,
+            tf.rotation.y,
+            tf.rotation.z,
+            tf.rotation.w
+        )
+    }
+
+    watch(
+        frame,
+        (newFrame, oldFrame) => {
+            if (oldFrame) tf2Client.unsubscribe(frame.value, updatePose)
+            if (newFrame) tf2Client.subscribe(frame.value, updatePose)
+        },
+        { immediate: true }
+    )
+
+    return currentPose
+}
+
+export const useTF2Frame = (
+    frame_id: string | Ref<string>,
+    controller: RenderController
+) => {
+    const currentFrame = new THREE.Group()
+    const frame = typeof frame_id === 'string' ? ref(frame_id) : frame_id
+
+    const currentPose = useTF2Pose(frame, controller.tf2Client!)
+
+    controller.frameCallbacks.push(() => {
+        currentFrame.position.lerp(currentPose.position, 0.2)
+        currentFrame.quaternion.slerp(currentPose.rotation, 0.2)
+    })
+
+    return currentFrame
 }
