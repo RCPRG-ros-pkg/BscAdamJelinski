@@ -3,8 +3,6 @@
 import os
 import sys
 import threading
-import tempfile
-import ipaddress
 import ssl
 from pathlib import Path
 from typing import Optional
@@ -17,6 +15,8 @@ from flask import Flask, Response, send_from_directory, jsonify
 import tornado.wsgi
 import tornado.httpserver
 import tornado.ioloop
+
+from .certificate_manager import generate_server_cert, cleanup_certificate_files
 
 
 class WebRobotControlNode(Node):
@@ -31,71 +31,6 @@ class WebRobotControlNode(Node):
         self.port = self.get_parameter("port").get_parameter_value().integer_value
         self.host = self.get_parameter("host").get_parameter_value().string_value
         self.config = self.get_parameter("config").get_parameter_value().string_value
-
-
-def generate_self_signed_cert():
-    try:
-        from cryptography import x509
-        from cryptography.x509.oid import NameOID
-        from cryptography.hazmat.primitives import hashes, serialization
-        from cryptography.hazmat.primitives.asymmetric import rsa
-        from datetime import datetime, timedelta, timezone
-
-        private_key = rsa.generate_private_key(
-            public_exponent=65537,
-            key_size=2048,
-        )
-
-        subject = issuer = x509.Name(
-            [
-                x509.NameAttribute(NameOID.COUNTRY_NAME, "PL"),
-                x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, "Mazowieckie"),
-                x509.NameAttribute(NameOID.LOCALITY_NAME, "Warszawa"),
-                x509.NameAttribute(NameOID.ORGANIZATION_NAME, "Web Robot Control"),
-                x509.NameAttribute(NameOID.COMMON_NAME, "localhost"),
-            ]
-        )
-
-        cert = (
-            x509.CertificateBuilder()
-            .subject_name(subject)
-            .issuer_name(issuer)
-            .public_key(private_key.public_key())
-            .serial_number(x509.random_serial_number())
-            .not_valid_before(datetime.now(timezone.utc))
-            .not_valid_after(datetime.now(timezone.utc) + timedelta(days=365))
-            .add_extension(
-                x509.SubjectAlternativeName(
-                    [
-                        x509.IPAddress(ipaddress.IPv4Address("127.0.0.1")),
-                        x509.IPAddress(ipaddress.IPv6Address("::1")),
-                        x509.DNSName("localhost"),
-                    ]
-                ),
-                critical=False,
-            )
-            .sign(private_key, hashes.SHA256())
-        )
-
-        cert_file = tempfile.NamedTemporaryFile(delete=False, suffix=".crt")
-        key_file = tempfile.NamedTemporaryFile(delete=False, suffix=".key")
-
-        cert_file.write(cert.public_bytes(serialization.Encoding.PEM))
-        key_file.write(
-            private_key.private_bytes(
-                encoding=serialization.Encoding.PEM,
-                format=serialization.PrivateFormat.PKCS8,
-                encryption_algorithm=serialization.NoEncryption(),
-            )
-        )
-
-        cert_file.close()
-        key_file.close()
-
-        return cert_file.name, key_file.name
-
-    except Exception as e:
-        return None, None
 
 
 def find_frontend_dist() -> Optional[Path]:
@@ -221,11 +156,11 @@ def main() -> None:
         ros_thread.daemon = True
         ros_thread.start()
 
-        cert_file, key_file = generate_self_signed_cert()
+        server_cert_file, server_key_file = generate_server_cert()
 
-        if cert_file and key_file:
+        if server_cert_file and server_key_file:
             ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
-            ssl_context.load_cert_chain(cert_file, key_file)
+            ssl_context.load_cert_chain(server_cert_file, server_key_file)
 
             container = tornado.wsgi.WSGIContainer(app)
             http_server = tornado.httpserver.HTTPServer(
@@ -235,6 +170,7 @@ def main() -> None:
             tornado.ioloop.IOLoop.current().start()
         else:
             node.get_logger().error("SSL setup failed, closing server")
+
     except KeyboardInterrupt:
         node.get_logger().info("Received KeyboardInterrupt, shutting down...")
     except SystemExit:
@@ -245,19 +181,7 @@ def main() -> None:
     node.get_logger().info("Destroying ROS node...")
     node.destroy_node()
 
-    if cert_file and os.path.exists(cert_file):
-        try:
-            os.unlink(cert_file)
-            node.get_logger().info("SSL certificate file cleaned up")
-        except Exception as e:
-            node.get_logger().warn(f"Failed to clean up certificate file: {e}")
-
-    if key_file and os.path.exists(key_file):
-        try:
-            os.unlink(key_file)
-            node.get_logger().info("SSL key file cleaned up")
-        except Exception as e:
-            node.get_logger().warn(f"Failed to clean up key file: {e}")
+    cleanup_certificate_files(server_cert_file, server_key_file)
 
 
 if __name__ == "__main__":
