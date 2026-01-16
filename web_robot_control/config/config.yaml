@@ -6,6 +6,9 @@ tf:
 robot:
   joint_states_topics: ["/joint_states"]
 
+gridCellCount: 10
+gridCellSize: 1
+
 vrPublisher:
   headsetTopic: "/vr/headset_pose"
   leftControllerTopic: "/vr/left_controller_pose"
@@ -42,7 +45,16 @@ topics:
       colorScheme: "costmap"
       showUnknown: true
       opacity: 0.9
-      zOffset: 0.05
+      zOffset: 0.002
+      renderOrder: 2
+
+  - name: "/global_costmap/costmap"
+    message_type: "nav_msgs/OccupancyGrid"
+    options:
+      colorScheme: "costmap"
+      showUnknown: true
+      opacity: 0.5
+      zOffset: 0.001
       renderOrder: 1
       
   - name: "/mobile_base_controller/odom"
@@ -51,6 +63,16 @@ topics:
       axesSize: 0.2
       lineWidth: 5
       opacity: 1
+
+  - name: "/vr/left_controller_pose"
+    message_type: "geometry_msgs/PoseStamped"
+    options:
+      axesSize: 0.15
+
+  - name: "/web_robot_control/world_mesh"
+    message_type: "visualization_msgs/Marker"
+    options:
+      opacity: 1.0
 
   - name: "/head_front_camera/depth_registered/points_downsampled"
     message_type: "sensor_msgs/PointCloud2"

@@ -1,5 +1,5 @@
 import { useRosStore } from '@/stores/ros'
-import { Topic, Service, TFClient, ROS2TFClient, Transform } from 'roslib'
+import { Topic, Service, TFClient, ROS2TFClient, Transform, Ros } from 'roslib'
 import { computed, watch } from 'vue'
 
 import * as THREE from 'three'
@@ -18,7 +18,7 @@ export const callService = (
             return
         }
         const service = new Service({
-            ros: rosStore.ros,
+            ros: rosStore.ros as Ros,
             name: serviceName,
             serviceType,
         })

@@ -1,5 +1,5 @@
 import { Ros } from 'roslib'
-import { computed, ref } from 'vue'
+import { computed, ref, shallowRef } from 'vue'
 import { defineStore } from 'pinia'
 
 export const useRosStore = defineStore('ros', () => {
@@ -9,7 +9,7 @@ export const useRosStore = defineStore('ros', () => {
         new URL(`ws://${address.value}:${port.value}`).toString()
     )
 
-    const ros = ref<Ros>()
+    const ros = shallowRef<Ros>()
     const connected = ref(false)
 
     const topics = ref<{ [key: string]: string }>({})
@@ -24,16 +24,6 @@ export const useRosStore = defineStore('ros', () => {
         reconnectTimeout.value = undefined
         connectionTimeout.value = undefined
 
-        if (
-            ros.value &&
-            ros.value.socket &&
-            ros.value.socket.readyState !== WebSocket.CLOSED &&
-            ros.value.socket.readyState !== WebSocket.CLOSING
-        ) {
-            if (ros.value.socket.url === url.value) return
-            else ros.value.close()
-        }
-
         console.log('[ROS]', 'connecting...', url.value)
 
         const newRos = new Ros({
@@ -44,8 +34,8 @@ export const useRosStore = defineStore('ros', () => {
         }, 4000)
 
         newRos.on('connection', () => {
-            if (!ros.value || !ros.value.socket) return
-            console.log('[ROS]', 'connected!', newRos!.socket!.url)
+            if (!ros.value) return
+            console.log('[ROS]', 'connected!')
 
             connected.value = ros.value.isConnected
 
@@ -79,7 +69,7 @@ export const useRosStore = defineStore('ros', () => {
 
         newRos.on('error', () => {
             if (!ros.value) return
-            console.log('[ROS]', 'error :(', newRos!.socket!.url)
+            console.log('[ROS]', 'error :(')
 
             connected.value = ros.value.isConnected
 
@@ -87,7 +77,7 @@ export const useRosStore = defineStore('ros', () => {
         })
         newRos.on('close', () => {
             if (!ros.value) return
-            console.log('[ROS]', 'closed', newRos!.socket!.url)
+            console.log('[ROS]', 'closed')
 
             connected.value = ros.value.isConnected
 
