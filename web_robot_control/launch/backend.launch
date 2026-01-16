@@ -21,4 +21,10 @@
         <param name="host" value="0.0.0.0" />
         <param name='config' type="str" value="$(command 'cat $(find-pkg-share web_robot_control)/config/config.yaml')"/>
     </node>
+
+    <node pkg="web_robot_control" exec="mesh_publisher" name="mesh_publisher">
+        <param name="mesh_resource" value="package://web_robot_control/meshes/pal_office_clean.dae" />
+        <param name="topic" value="/web_robot_control/world_mesh" />
+        <param name="pose" value="[0.0, 0.0, -0.01, 0.0, 0.0, 0.0, 1.0]" />
+    </node>
 </launch>

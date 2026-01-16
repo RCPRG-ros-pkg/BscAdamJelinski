@@ -14,6 +14,7 @@ setup(
         ("share/" + package_name, ["package.xml"]),
         ("share/" + package_name, glob("launch/*.launch")),
         ("share/" + package_name + "/config", glob("config/*.yaml")),
+        ("share/" + package_name + "/meshes", glob("meshes/*")),
         *[
             (
                 os.path.join(
@@ -37,6 +38,9 @@ setup(
     license="Apache-2.0",
     tests_require=["pytest"],
     entry_points={
-        "console_scripts": ["server = web_robot_control.server:main"],
+        "console_scripts": [
+            "server = web_robot_control.server:main",
+            "mesh_publisher = web_robot_control.mesh_publisher:main",
+        ],
     },
 )

@@ -5,7 +5,7 @@ import { XRControllerModelFactory } from 'three/addons/webxr/XRControllerModelFa
 import { XRHandModelFactory } from 'three/examples/jsm/Addons.js'
 import { VRNavigation } from './VRNavigation'
 import { VRPositionPublisher } from './VRPositionPublisher'
-import { ROS2TFClient } from 'roslib'
+import { ROS2TFClient, Ros } from 'roslib'
 import { useRosStore } from '@/stores/ros'
 import { robotLoader } from './robotLoader'
 import { parse } from 'yaml'
@@ -16,6 +16,7 @@ import {
     nav_msgs_odometry,
     sensor_msgs_pointcloud2,
     geometry_msgs_posestamped,
+    visualization_msgs_marker,
 } from './topicVisualisation'
 import { useTopicSubscriber } from '@/core/roslibExtensions'
 
@@ -25,6 +26,7 @@ const topicVisualizers: Record<string, TopicVisualizer> = {
     'sensor_msgs/PointCloud2': sensor_msgs_pointcloud2,
     'nav_msgs/Odometry': nav_msgs_odometry,
     'geometry_msgs/PoseStamped': geometry_msgs_posestamped,
+    'visualization_msgs/Marker': visualization_msgs_marker,
 }
 
 export class RenderController {
@@ -107,6 +109,7 @@ export class RenderController {
             this,
             this.config.vrPublisher
         )
+        this.initGrid()
 
         this.renderer.setAnimationLoop(() => {
             this.render()
@@ -183,11 +186,11 @@ export class RenderController {
     }
 
     initTestLight = () => {
-        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x8d8d8d, 3)
+        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x8d8d8d, 2)
         hemiLight.position.set(0, 0, 20)
         this.scene.add(hemiLight)
 
-        const dirLight = new THREE.DirectionalLight(0xffffff, 2)
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1)
         dirLight.position.set(3, 10, 10)
         this.scene.add(dirLight)
     }
@@ -195,7 +198,7 @@ export class RenderController {
     initTF2 = () => {
         const rosStore = useRosStore()
         this.tf2Client = new ROS2TFClient({
-            ros: rosStore.ros!!,
+            ros: rosStore.ros!! as Ros,
             fixedFrame: this.config.tf.fixed_frame,
             angularThres: this.config.tf.angular_threshold,
             transThres: this.config.tf.translation_threshold,
@@ -234,5 +237,22 @@ export class RenderController {
         })
 
         this.scene.add(group)
+    }
+
+    initGrid = () => {
+        console.log(this.config.gridCellCount, this.config.gridCellSize)
+        if (!this.config.gridCellCount || !this.config.gridCellSize) {
+            return
+        }
+        const gridCellCount = this.config.gridCellCount
+        const gridCellSize = this.config.gridCellSize
+
+        const gridHelper = new THREE.GridHelper(
+            gridCellCount * gridCellSize,
+            gridCellCount,
+            0x888888,
+            0x444444
+        )
+        this.scene.add(gridHelper)
     }
 }

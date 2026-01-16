@@ -75,9 +75,10 @@ export const nav_msgs_occupancygrid = (
                     pixels[4 * i + 2] = 0
                     pixels[4 * i + 3] = 0
                 } else if (1 <= val && val <= 98) {
-                    pixels[4 * i] = val
+                    const v = (255 * val) / 100
+                    pixels[4 * i] = v
                     pixels[4 * i + 1] = 0
-                    pixels[4 * i + 2] = 255 - val
+                    pixels[4 * i + 2] = 255 - v
                     pixels[4 * i + 3] = 255
                 } else if (val === 99) {
                     pixels[4 * i] = 0

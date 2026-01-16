@@ -27,6 +27,8 @@ export interface VRPositionPublisherConfig {
 export interface RenderControllerConfig {
     tf: TFConfig
     robot: RobotConfig
+    gridCellCount?: number
+    gridCellSize?: number
     topics: TopicConfig[]
     vrPublisher: VRPositionPublisherConfig
 }
