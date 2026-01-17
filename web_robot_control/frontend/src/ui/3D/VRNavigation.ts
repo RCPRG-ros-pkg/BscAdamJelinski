@@ -75,18 +75,15 @@ export class VRNavigation {
     frameCallback = () => {
         if (this.guidingController) {
             const position = new Vector3(),
-                velocity = new Vector3()
+                velocity = new Vector3(),
+                floorPosition = new Vector3()
             this.guidingController.getWorldPosition(position)
             this.guidingController.getWorldDirection(velocity)
+            this.controller.cameraGroup.getWorldPosition(floorPosition)
 
             velocity.multiplyScalar(6)
 
-            const time =
-                (-velocity.y +
-                    Math.sqrt(
-                        velocity.y ** 2 - 2 * position.y * this.gravity.y
-                    )) /
-                this.gravity.y
+            const time = this.throwTime(position, velocity, floorPosition)
 
             for (let i = 1; i <= this.lineSegments; i++) {
                 const vertex = this.positionAtT(
@@ -101,6 +98,9 @@ export class VRNavigation {
 
             this.guideTarget.position.copy(
                 this.positionAtT(time * 0.98, position, velocity)
+            )
+            this.guideTarget.scale.setScalar(
+                this.controller.cameraGroup.scale.x
             )
         }
         if (
@@ -155,6 +155,21 @@ export class VRNavigation {
         }
     }
 
+    throwTime = (
+        position: Vector3,
+        velocity: Vector3,
+        floorPosition: Vector3
+    ) => {
+        return (
+            (-velocity.y +
+                Math.sqrt(
+                    velocity.y ** 2 -
+                        2 * (position.y - floorPosition.y) * this.gravity.y
+                )) /
+            this.gravity.y
+        )
+    }
+
     positionAtT = (time: number, position: Vector3, velocity: Vector3) => {
         const output = new Vector3()
         output.copy(position)
@@ -203,19 +218,17 @@ export class VRNavigation {
             this.controller.renderer.xr
                 .getCamera()
                 .getWorldPosition(feetPosition)
-            feetPosition.y = 0
 
             const position = new Vector3(),
-                velocity = new Vector3()
+                velocity = new Vector3(),
+                floorPosition = new Vector3()
             this.guidingController.getWorldPosition(position)
             this.guidingController.getWorldDirection(velocity)
+            this.controller.cameraGroup.getWorldPosition(floorPosition)
+            feetPosition.y = floorPosition.y
             velocity.multiplyScalar(6)
-            const time =
-                (-velocity.y +
-                    Math.sqrt(
-                        velocity.y ** 2 - 2 * position.y * this.gravity.y
-                    )) /
-                this.gravity.y
+
+            const time = this.throwTime(position, velocity, floorPosition)
             const cursorPos = this.positionAtT(time, position, velocity)
 
             const offset = cursorPos.addScaledVector(feetPosition, -1)

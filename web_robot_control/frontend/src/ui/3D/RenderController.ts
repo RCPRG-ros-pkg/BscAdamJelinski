@@ -61,7 +61,12 @@ export class RenderController {
         // this.scene.useRightHandedSystem = true
 
         // ===== Camera =====
-        this.camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 1000)
+        this.camera = new THREE.PerspectiveCamera(
+            60,
+            width / height,
+            0.01,
+            1000
+        )
         this.camera.position.x = -15
         this.camera.position.y = 15
         this.camera.position.z = 15

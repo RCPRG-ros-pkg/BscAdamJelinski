@@ -61,7 +61,7 @@ export const visualization_msgs_marker = (
                         'package://',
                         ''
                     )
-                    msg.mesh_resource = `https://localhost:8080/models/packages/${packagePath}`
+                    msg.mesh_resource = `/models/packages/${packagePath}`
                 }
                 switch (msg.mesh_resource.split('.').pop()) {
                     case 'stl':
