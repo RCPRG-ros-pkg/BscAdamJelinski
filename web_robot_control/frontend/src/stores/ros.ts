@@ -67,9 +67,9 @@ export const useRosStore = defineStore('ros', () => {
             clearTimeout(connectionTimeout.value)
         })
 
-        newRos.on('error', () => {
+        newRos.on('error', (err) => {
             if (!ros.value) return
-            console.log('[ROS]', 'error :(')
+            console.log('[ROS]', 'error :(', err)
 
             connected.value = ros.value.isConnected
 

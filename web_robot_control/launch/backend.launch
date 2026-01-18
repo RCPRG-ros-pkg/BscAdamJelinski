@@ -1,4 +1,9 @@
-<launch>  
+<launch>
+    <arg name="server_host" default="0.0.0.0" />
+    <arg name="server_port" default="8080" />
+    <arg name="config" default="$(command 'cat $(find-pkg-share web_robot_control)/config/example_config.yaml')" />
+    <arg name="max_message_size" default="10000000" />
+
     <node pkg="rosapi" exec="rosapi_node" name="rosapi_node">
         <param name="topics_glob" value="[*]" />
         <param name="services_glob" value="[*]" />
@@ -8,23 +13,15 @@
     <node pkg="rosbridge_server" exec="rosbridge_websocket" name="rosbridge_websocket">
         <param name="use_compression" value="true" />
         <param name="send_action_goals_in_new_thread" value="true" />
+
+        <param name="max_message_size" value="$(var max_message_size)"/>
     </node>
+
     <node pkg="tf2_web_republisher" exec="tf2_web_republisher_node" name="tf2_web_republisher_node"></node>
 
-    <node pkg="pointcloud_downsampler" exec="downsampler" name="pointcloud_downsampler">
-        <remap from="input" to="/head_front_camera/depth_registered/points" />
-        <remap from="output" to="/head_front_camera/depth_registered/points_downsampled" />
-    </node>
-
     <node pkg="web_robot_control" exec="server" name="web_robot_control_server">
-        <param name="port" value="8080" />
-        <param name="host" value="0.0.0.0" />
-        <param name='config' type="str" value="$(command 'cat $(find-pkg-share web_robot_control)/config/config.yaml')"/>
-    </node>
-
-    <node pkg="web_robot_control" exec="mesh_publisher" name="mesh_publisher">
-        <param name="mesh_resource" value="package://web_robot_control/meshes/pal_office_clean.dae" />
-        <param name="topic" value="/web_robot_control/world_mesh" />
-        <param name="pose" value="[0.0, 0.0, -0.01, 0.0, 0.0, 0.0, 1.0]" />
+        <param name="host" value="$(var server_host)" />
+        <param name="port" value="$(var server_port)" />
+        <param name="config" type="str" value="$(var config)"/>
     </node>
 </launch>

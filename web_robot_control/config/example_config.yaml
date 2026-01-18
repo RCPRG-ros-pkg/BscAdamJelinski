@@ -78,7 +78,7 @@ topics:
     message_type: "sensor_msgs/PointCloud2"
     options:
       maxPoints: 50000
-      pointSize: 0.01
+      pointSize: 0.03
       colorMode: "RGB"
       opacity: 0.5
       maxTraces: 10

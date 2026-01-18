@@ -15,6 +15,7 @@ using std::placeholders::_1;
 class DownSampler : public rclcpp::Node {
 public:
   DownSampler() : Node("pointcloud_downsampler") {
+    this->declare_parameter<double>("resolution", 0.05);
 
     subscription_ = this->create_subscription<sensor_msgs::msg::PointCloud2>(
         "input", 10, std::bind(&DownSampler::topic_callback, this, _1));
@@ -32,7 +33,11 @@ private:
 
     pcl::VoxelGrid<pcl::PCLPointCloud2> voxel_filter;
     voxel_filter.setInputCloud(cloud);
-    voxel_filter.setLeafSize(0.05, 0.05, 0.05);
+
+    double resolution = 0.05;
+    this->get_parameter("resolution", resolution);
+    float leaf = static_cast<float>(resolution);
+    voxel_filter.setLeafSize(leaf, leaf, leaf);
     voxel_filter.filter(*cloud_filtered);
 
     sensor_msgs::msg::PointCloud2 cloud_out;

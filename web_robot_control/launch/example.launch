@@ -1,0 +1,19 @@
+<launch>
+    <include file="$(find-pkg-share web_robot_control)/launch/backend.launch">
+        <arg name="server_host" value="0.0.0.0" />
+        <arg name="server_port" value="8080" />
+        <arg name="config" value="$(command 'cat $(find-pkg-share web_robot_control)/config/example_config.yaml')" />
+    </include>
+
+    <node pkg="pointcloud_downsampler" exec="downsampler" name="pointcloud_downsampler">
+        <remap from="input" to="/head_front_camera/depth_registered/points" />
+        <remap from="output" to="/head_front_camera/depth_registered/points_downsampled" />
+        <param name="resolution" value="0.05" />
+    </node>
+
+    <node pkg="web_robot_control" exec="mesh_publisher" name="mesh_publisher">
+        <param name="mesh_resource" value="package://web_robot_control/meshes/pal_office_clean.dae" />
+        <param name="topic" value="/web_robot_control/world_mesh" />
+        <param name="pose" value="[0.0, 0.0, -0.01, 0.0, 0.0, 0.0, 1.0]" />
+    </node>
+</launch>
