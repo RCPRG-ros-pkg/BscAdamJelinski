@@ -18,6 +18,7 @@ export interface TopicConfig {
 }
 
 export interface VRPositionPublisherConfig {
+    enabled: boolean
     headsetTopic: string
     leftControllerTopic: string
     rightControllerTopic: string
@@ -27,8 +28,11 @@ export interface VRPositionPublisherConfig {
 export interface RenderControllerConfig {
     tf: TFConfig
     robot: RobotConfig
-    gridCellCount?: number
-    gridCellSize?: number
+    grid: {
+        enabled: boolean
+        cellCount: number
+        cellSize: number
+    }
     topics: TopicConfig[]
     vrPublisher: VRPositionPublisherConfig
 }
@@ -42,8 +46,6 @@ export interface TopicVisualizer {
 }
 
 export interface TopicVisualizationOptions {
-    frame_id?: string
-    color?: number
     opacity?: number
     renderOrder?: number
 
@@ -61,6 +63,7 @@ export interface TopicVisualizationOptions {
 
     // Path, Odometry and PoseStamped
     lineWidth?: number
+    color?: number
 
     // Odometry and PoseStamped
     axesSize?: number

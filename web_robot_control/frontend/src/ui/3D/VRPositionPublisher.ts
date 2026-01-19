@@ -18,6 +18,11 @@ export class VRPositionPublisher {
     ) {
         this.config = config
         this.renderController = renderController
+
+        if (!this.config.enabled || this.config.publishRate <= 0) {
+            return
+        }
+
         this.initializeTopics()
         this.startPublishing()
     }

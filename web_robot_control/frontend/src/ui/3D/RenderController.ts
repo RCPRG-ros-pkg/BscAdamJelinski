@@ -141,8 +141,14 @@ export class RenderController {
             robot: {
                 joint_states_topics: ['/joint_states'],
             },
+            grid: {
+                enabled: true,
+                cellCount: 10,
+                cellSize: 1,
+            },
             topics: [],
             vrPublisher: {
+                enabled: true,
                 headsetTopic: '/vr/headset_pose',
                 leftControllerTopic: '/vr/left_controller_pose',
                 rightControllerTopic: '/vr/right_controller_pose',
@@ -245,12 +251,16 @@ export class RenderController {
     }
 
     initGrid = () => {
-        console.log(this.config.gridCellCount, this.config.gridCellSize)
-        if (!this.config.gridCellCount || !this.config.gridCellSize) {
+        if (
+            !this.config.grid ||
+            !this.config.grid.enabled ||
+            !this.config.grid.cellCount ||
+            !this.config.grid.cellSize
+        ) {
             return
         }
-        const gridCellCount = this.config.gridCellCount
-        const gridCellSize = this.config.gridCellSize
+        const gridCellCount = this.config.grid.cellCount
+        const gridCellSize = this.config.grid.cellSize
 
         const gridHelper = new THREE.GridHelper(
             gridCellCount * gridCellSize,

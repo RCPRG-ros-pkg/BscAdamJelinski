@@ -6,10 +6,13 @@ tf:
 robot:
   joint_states_topics: ["/joint_states"]
 
-gridCellCount: 10
-gridCellSize: 1
+grid:
+  enabled: true
+  cellCount: 10
+  cellSize: 1
 
 vrPublisher:
+  enabled: true
   headsetTopic: "/vr/headset_pose"
   leftControllerTopic: "/vr/left_controller_pose"
   rightControllerTopic: "/vr/right_controller_pose"
@@ -83,7 +86,7 @@ topics:
       opacity: 0.5
       maxTraces: 10
       
-#  - name: "/pose"
-#    message_type: "geometry_msgs/PoseStamped"
-#    options:
-#      axesSize: 0.15
+  - name: "/pose"
+    message_type: "geometry_msgs/PoseStamped"
+    options:
+      axesSize: 0.15
