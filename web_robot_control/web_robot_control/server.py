@@ -15,6 +15,8 @@ from flask import Flask, Response, send_from_directory, jsonify
 import tornado.wsgi
 import tornado.httpserver
 import tornado.ioloop
+import tornado.web
+import tornado.websocket
 
 from .certificate_manager import generate_server_cert, cleanup_certificate_files
 
@@ -27,10 +29,18 @@ class WebRobotControlNode(Node):
         self.declare_parameter("port", 8080)
         self.declare_parameter("host", "0.0.0.0")
         self.declare_parameter("config", "")
+        self.declare_parameter("rosbridge_host", "localhost")
+        self.declare_parameter("rosbridge_port", 9090)
 
         self.port = self.get_parameter("port").get_parameter_value().integer_value
         self.host = self.get_parameter("host").get_parameter_value().string_value
         self.config = self.get_parameter("config").get_parameter_value().string_value
+        self.rosbridge_host = (
+            self.get_parameter("rosbridge_host").get_parameter_value().string_value
+        )
+        self.rosbridge_port = (
+            self.get_parameter("rosbridge_port").get_parameter_value().integer_value
+        )
 
 
 def find_frontend_dist() -> Optional[Path]:
@@ -118,6 +128,63 @@ def create_app(node: WebRobotControlNode, frontend_dist_path: Path) -> Flask:
     return app
 
 
+class RosbridgeWebSocketProxy(tornado.websocket.WebSocketHandler):
+    def initialize(self, node: WebRobotControlNode):
+        self.node = node
+        self.rosbridge = None
+
+    def check_origin(self, origin: str) -> bool:  # allow CORS for websockets
+        return True
+
+    async def open(self):
+        try:
+            target = f"ws://{self.node.rosbridge_host}:{self.node.rosbridge_port}"
+            self.rosbridge = await tornado.websocket.websocket_connect(target)
+            tornado.ioloop.IOLoop.current().add_callback(self._read_from_backend)
+        except Exception as e:
+            self.node.get_logger().error(
+                f"Failed to connect to rosbridge websocket: {e}"
+            )
+            self.close()
+
+    async def _read_from_backend(self):
+        try:
+            while True:
+                msg = await self.rosbridge.read_message()
+                if msg is None:
+                    break
+                if isinstance(msg, (bytes, bytearray)):
+                    await self.write_message(msg, binary=True)
+                else:
+                    await self.write_message(msg)
+        except Exception as e:
+            self.node.get_logger().error(f"Error reading from rosbridge websocket: {e}")
+        finally:
+            try:
+                self.close()
+            except Exception:
+                pass
+
+    async def on_message(self, message):
+        if not self.rosbridge:
+            return
+        try:
+            if isinstance(message, (bytes, bytearray)):
+                await self.rosbridge.write_message(message, binary=True)
+            else:
+                await self.rosbridge.write_message(message)
+        except Exception as e:
+            self.node.get_logger().error(f"Error forwarding message to rosbridge: {e}")
+            self.close()
+
+    def on_close(self):
+        try:
+            if self.rosbridge:
+                self.rosbridge.close()
+        except Exception:
+            pass
+
+
 def run_ros_node(node: WebRobotControlNode) -> None:
     node.get_logger().info("ROS node thread started")
     while True:
@@ -162,9 +229,16 @@ def main() -> None:
             ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
             ssl_context.load_cert_chain(server_cert_file, server_key_file)
 
-            container = tornado.wsgi.WSGIContainer(app)
+            wsgi_container = tornado.wsgi.WSGIContainer(app)
+            tornado_app = tornado.web.Application(
+                [
+                    (r"/rosbridge", RosbridgeWebSocketProxy, dict(node=node)),
+                    (r".*", tornado.web.FallbackHandler, dict(fallback=wsgi_container)),
+                ]
+            )
+
             http_server = tornado.httpserver.HTTPServer(
-                container, ssl_options=ssl_context
+                tornado_app, ssl_options=ssl_context
             )
             http_server.listen(node.port, address=node.host)
             tornado.ioloop.IOLoop.current().start()

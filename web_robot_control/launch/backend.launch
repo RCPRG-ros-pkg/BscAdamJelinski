@@ -1,6 +1,8 @@
 <launch>
     <arg name="server_host" default="0.0.0.0" />
     <arg name="server_port" default="8080" />
+    <arg name="rosbridge_host" default="localhost" />
+    <arg name="rosbridge_port" default="9090" />
     <arg name="config" default="$(command 'cat $(find-pkg-share web_robot_control)/config/example_config.yaml')" />
     <arg name="max_message_size" default="10000000" />
 
@@ -15,6 +17,9 @@
         <param name="send_action_goals_in_new_thread" value="true" />
 
         <param name="max_message_size" value="$(var max_message_size)"/>
+
+        <param name="address" value="$(var rosbridge_host)" />
+        <param name="port" value="$(var rosbridge_port)" />
     </node>
 
     <node pkg="tf2_web_republisher" exec="tf2_web_republisher_node" name="tf2_web_republisher_node"></node>
@@ -23,5 +28,8 @@
         <param name="host" value="$(var server_host)" />
         <param name="port" value="$(var server_port)" />
         <param name="config" type="str" value="$(var config)"/>
+
+        <param name="rosbridge_host" value="$(var rosbridge_host)" />
+        <param name="rosbridge_port" value="$(var rosbridge_port)" />
     </node>
 </launch>

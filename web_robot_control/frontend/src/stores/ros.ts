@@ -3,10 +3,8 @@ import { computed, ref, shallowRef } from 'vue'
 import { defineStore } from 'pinia'
 
 export const useRosStore = defineStore('ros', () => {
-    const address = ref(window.location.hostname)
-    const port = ref(9090)
     const url = computed(() =>
-        new URL(`ws://${address.value}:${port.value}`).toString()
+        new URL(`wss://${window.location.host}/rosbridge`).toString()
     )
 
     const ros = shallowRef<Ros>()
