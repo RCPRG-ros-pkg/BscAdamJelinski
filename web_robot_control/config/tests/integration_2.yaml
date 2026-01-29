@@ -34,7 +34,7 @@ topics:
       opacity: 1
       lineWidth: 2
       
-  - name: "/global_costmap/costmap"
+  - name: "/map"
     message_type: "nav_msgs/OccupancyGrid"
     options:
       colorScheme: "map"
@@ -49,17 +49,18 @@ topics:
       colorScheme: "costmap"
       showUnknown: true
       opacity: 0.9
-      zOffset: 0.05
+      zOffset: 0.002
+      renderOrder: 2
+
+  - name: "/global_costmap/costmap"
+    message_type: "nav_msgs/OccupancyGrid"
+    options:
+      colorScheme: "costmap"
+      showUnknown: true
+      opacity: 0.5
+      zOffset: 0.001
       renderOrder: 1
       
-  - name: "/head_front_camera/depth_registered/points_downsampled"
-    message_type: "sensor_msgs/PointCloud2"
-    options:
-      maxPoints: 50000
-      pointSize: 0.01
-      colorMode: "RGB"
-      opacity: 0.5
-      maxTraces: 10
   - name: "/mobile_base_controller/odom"
     message_type: "nav_msgs/Odometry"
     options:
@@ -77,8 +78,16 @@ topics:
     options:
       opacity: 1.0
 
+  - name: "/head_front_camera/depth_registered/points"
+    message_type: "sensor_msgs/PointCloud2"
+    options:
+      maxPoints: 500000
+      pointSize: 0.03
+      colorMode: "RGB"
+      opacity: 0.5
+      maxTraces: 1
       
-#  - name: "/pose"
-#    message_type: "geometry_msgs/PoseStamped"
-#    options:
-#      axesSize: 0.15
+  - name: "/pose"
+    message_type: "geometry_msgs/PoseStamped"
+    options:
+      axesSize: 0.15

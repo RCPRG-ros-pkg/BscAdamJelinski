@@ -1,0 +1,32 @@
+tf:
+  fixed_frame: "map"
+  angular_threshold: 0.01
+  translation_threshold: 0.005
+
+robot:
+  enabled: false
+  joint_states_topics: ["/joint_states"]
+
+grid:
+  enabled: true
+  cellCount: 10
+  cellSize: 1
+
+vrPublisher:
+  enabled: false
+
+topics: 
+  - name: "/web_robot_control/world_mesh"
+    message_type: "visualization_msgs/Marker"
+    options:
+      opacity: 1.0
+
+  - name: "/map"
+    message_type: "nav_msgs/OccupancyGrid"
+    options:
+      colorScheme: "map"
+      showUnknown: true
+      unknownColor: 0xcc0000
+      opacity: 1
+      zOffset: 0.001
+

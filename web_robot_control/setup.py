@@ -14,6 +14,7 @@ setup(
         ("share/" + package_name, ["package.xml"]),
         ("share/" + package_name + "/launch", glob("launch/*.launch")),
         ("share/" + package_name + "/config", glob("config/*.yaml")),
+        ("share/" + package_name + "/config/tests", glob("config/tests/*.yaml")),
         ("share/" + package_name + "/meshes", glob("meshes/*")),
         *[
             (

@@ -1,0 +1,31 @@
+tf:
+  fixed_frame: "map"
+  angular_threshold: 0.01
+  translation_threshold: 0.005
+
+robot:
+  enabled: false
+  joint_states_topics: ["/joint_states"]
+
+grid:
+  enabled: true
+  cellCount: 10
+  cellSize: 1
+
+vrPublisher:
+  enabled: false
+
+topics: 
+  - name: "/local_plan"
+    message_type: "nav_msgs/Path"
+    options:
+      color: 0xff0000
+      opacity: 1
+      lineWidth: 2
+
+  - name: "/plan"
+    message_type: "nav_msgs/Path"
+    options:
+      color: 0x0000ff
+      opacity: 1
+      lineWidth: 5

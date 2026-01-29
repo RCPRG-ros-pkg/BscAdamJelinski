@@ -1,0 +1,31 @@
+tf:
+  fixed_frame: "map"
+  angular_threshold: 0.01
+  translation_threshold: 0.005
+
+robot:
+  enabled: false
+  joint_states_topics: ["/joint_states"]
+
+grid:
+  enabled: true
+  cellCount: 10
+  cellSize: 1
+
+vrPublisher:
+  enabled: true
+  headsetTopic: "/vr/headset_pose"
+  leftControllerTopic: "/vr/left_controller_pose"
+  rightControllerTopic: "/vr/right_controller_pose"
+  publishRate: 120
+
+topics: 
+  - name: "/vr/left_controller_pose"
+    message_type: "geometry_msgs/PoseStamped"
+    options:
+      axesSize: 0.15
+
+  - name: "/vr/right_controller_pose"
+    message_type: "geometry_msgs/PoseStamped"
+    options:
+      axesSize: 0.15

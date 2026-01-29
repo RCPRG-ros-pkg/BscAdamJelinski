@@ -1,0 +1,26 @@
+tf:
+  fixed_frame: "map"
+  angular_threshold: 0.01
+  translation_threshold: 0.005
+
+robot:
+  enabled: false
+  joint_states_topics: ["/joint_states"]
+
+grid:
+  enabled: true
+  cellCount: 10
+  cellSize: 1
+
+vrPublisher:
+  enabled: false
+
+topics: 
+  - name: "/head_front_camera/depth_registered/points_downsampled"
+    message_type: "sensor_msgs/PointCloud2"
+    options:
+      maxPoints: 50000
+      pointSize: 0.03
+      colorMode: "RGB"
+      opacity: 0.5
+      maxTraces: 50

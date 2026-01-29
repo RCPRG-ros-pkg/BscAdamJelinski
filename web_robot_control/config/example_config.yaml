@@ -4,6 +4,7 @@ tf:
   translation_threshold: 0.005
 
 robot:
+  enabled: true
   joint_states_topics: ["/joint_states"]
 
 grid:

@@ -1,0 +1,31 @@
+tf:
+  fixed_frame: "map"
+  angular_threshold: 0.01
+  translation_threshold: 0.005
+
+robot:
+  enabled: false
+  joint_states_topics: ["/joint_states"]
+
+grid:
+  enabled: true
+  cellCount: 10
+  cellSize: 1
+
+vrPublisher:
+  enabled: false
+
+topics: 
+  - name: "/mobile_base_controller/odom"
+    message_type: "nav_msgs/Odometry"
+    options:
+      axesSize: 1
+      lineWidth: 1
+      opacity: 1
+
+  - name: "/mobile_base_controller/odom"
+    message_type: "nav_msgs/Odometry"
+    options:
+      axesSize: 0.2
+      lineWidth: 10
+      opacity: 1
