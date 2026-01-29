@@ -8,6 +8,7 @@ export interface TFConfig {
 }
 
 export interface RobotConfig {
+    enabled: boolean
     joint_states_topics: string[]
 }
 

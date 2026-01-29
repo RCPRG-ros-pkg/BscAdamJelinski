@@ -57,6 +57,17 @@ export const sensor_msgs_pointcloud2 = (
         group.add(object)
     }
 
+    controller.frameCallbacks.push(() => {
+        const scaleVec = new THREE.Vector3()
+        controller.camera.getWorldScale(scaleVec)
+        const scale = scaleVec.x
+        pointCloudBuffer.forEach((pc) => {
+            const material = pc.material as THREE.PointsMaterial
+            material.size = opts.pointSize / scale
+            material.needsUpdate = true
+        })
+    })
+
     useTopicSubscriber(
         topicName,
         'sensor_msgs/msg/PointCloud2',

@@ -64,7 +64,7 @@ export class RenderController {
         this.camera = new THREE.PerspectiveCamera(
             60,
             width / height,
-            0.01,
+            0.000001,
             1000
         )
         this.camera.position.x = -15
@@ -79,6 +79,7 @@ export class RenderController {
         this.renderer = new THREE.WebGLRenderer({
             canvas: canvas,
             antialias: true,
+            logarithmicDepthBuffer: true,
         })
         this.renderer.setSize(width, height)
 
@@ -139,6 +140,7 @@ export class RenderController {
                 translation_threshold: 0.01,
             },
             robot: {
+                enabled: true,
                 joint_states_topics: ['/joint_states'],
             },
             grid: {
@@ -217,6 +219,7 @@ export class RenderController {
     }
 
     loadModels = async () => {
+        if (!this.config.robot.enabled) return
         useTopicSubscriber(
             '/robot_description',
             'std_msgs/msg/String',

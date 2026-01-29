@@ -58,6 +58,8 @@ export const geometry_msgs_posestamped = (
     controller.frameCallbacks.push(() => {
         axes.position.lerp(latestPosition, 0.2)
         axes.quaternion.slerp(latestRotation, 0.2)
+        //axes.position.copy(latestPosition)
+        //axes.quaternion.copy(latestRotation)
     })
 
     useTopicSubscriber(topicName, 'geometry_msgs/msg/PoseStamped', (msg) => {
