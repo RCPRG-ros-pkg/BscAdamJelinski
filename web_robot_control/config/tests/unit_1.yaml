@@ -13,6 +13,10 @@ grid:
   cellSize: 1
 
 vrPublisher:
-  enabled: false
+  enabled: true
+  headsetTopic: "/vr/headset_pose"
+  leftControllerTopic: "/vr/left_controller_pose"
+  rightControllerTopic: "/vr/right_controller_pose"
+  publishRate: 120
 
 topics: []
